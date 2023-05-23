@@ -1,0 +1,12 @@
+[submodule "ui"]
+	path = ui
+	url = git@github.com:bdarge/sb-ui.git
+[submodule "api"]
+	path = api
+	url = git@github.com:bdarge/sb-api.git
+[submodule "api-gateway"]
+	path = api-gateway
+	url = git@github.com:bdarge/sb-api-gateway.git
+[submodule "proto"]
+	path = proto
+	url = git@github.com:bdarge/sb-proto.git
