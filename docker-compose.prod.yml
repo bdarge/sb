@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  db:
+    volumes:
+      - data:/var/lib/mysql
+  api:
+    build:
+      target: prod
+    volumes:
+      - ./config/api/:/app/envs
+      - ./misc:/misc
+  migrator:
+    build:
+      target: prod
+    volumes:
+      - ./api/db:/app/db
+      - ./config/api/:/app/envs
+      - ./misc:/misc
+  gateway:
+    build:
+      target: prod
+    volumes:
+      - ./config/gateway/:/app/envs
+      - ./misc:/misc
+    environment:
+      GIN_MODE: release
+  auth:
+    build:
+      target: prod
+    volumes:
+      - ./config/auth/:/app/envs
+      - ./misc:/misc
+  ui:
+    build:
+      target: prod
+      args:
+        - NODE_ENV=PROD
+        - API_BASE_URL=http://127.0.0.1:3000/v1
+    environment:
+      NODE_ENV: PROD
+volumes:
+  data: {}

@@ -7,6 +7,6 @@
 [submodule "api-gateway"]
 	path = api-gateway
 	url = git@github.com:bdarge/sb-api-gateway.git
-[submodule "proto"]
-	path = proto
-	url = git@github.com:bdarge/sb-proto.git
+[submodule "auth"]
+	path = auth
+	url = git@github.com:bdarge/sb-auth.git

@@ -15,63 +15,48 @@ services:
       MYSQL_PASSWORD: 'password!'
     ports:
       - "3308:3306"
-    volumes:
-      - data:/var/lib/mysql
   api:
     hostname: app
     restart: unless-stopped
-    image: api
+    image: sb-api
     platform: linux/arm64
     depends_on:
       - db
     build:
-      context: api
       target: dev
+      context: api
       dockerfile: Dockerfile.grpc
-    working_dir: /app
-    volumes:
-      - ./api:/app
-      - ./config/api:/app/envs
     ports:
       - "50052:50052"
     command: >
-      sh -c "wait-for-it.sh 127.0.0.1:3308 -- /app/api"
+      sh -c "/misc/wait-for-it.sh 127.0.0.1:3308 -- /app/api"
   migrator:
-    image: api
+    image: sb-api
     depends_on:
       - db
     build:
+      target: dev_migrator
       context: api
       dockerfile: Dockerfile.grpc
-      target: dev_migrator
-    volumes:
-      - ./api:/app
-      - ./misc:/misc
-      - ./config/api/:/app/envs
-    working_dir: /app
     environment:
       MIGRATOR: 'true'
     command: >
-      sh -c "wait-for-it.sh 127.0.0.1:3308 -- /app/api"
+      sh -c "/misc/wait-for-it.sh 127.0.0.1:3308 -- /app/api"
   auth:
     hostname: auth
     restart: unless-stopped
-    image: auth
+    image: sb-auth
     platform: linux/arm64
     depends_on:
       - db
     build:
-      context: auth
       target: dev
+      context: auth
       dockerfile: Dockerfile.grpc
-    volumes:
-      - ./auth:/app
-      - ./config/auth/:/app/envs
-    working_dir: /app
     ports:
       - "50051:50051"
     command: >
-      sh -c "wait-for-it.sh 127.0.0.1:3308 -- /app/api"
+      sh -c "/misc/wait-for-it.sh 127.0.0.1:3308 -- /app/auth"
   gateway:
     hostname: gateway
     restart: unless-stopped
@@ -81,14 +66,20 @@ services:
       - auth
       - api
     build:
-      context: api-gateway
       target: dev
+      context: api-gateway
       dockerfile: Dockerfile.grpc
-    volumes:
-      - ./api-gateway:/app
-      - ./config/gateway/:/app/envs
-    working_dir: /app
     ports:
       - "3000:3000"
-volumes:
-  data: {}
+    command: >
+      sh -c "/misc/wait-for-it.sh 127.0.0.1:3308 -- /app/gateway"
+  ui:
+    depends_on:
+      - db
+    image: sb-ui
+    build:
+      context: ui
+      target: dev
+    ports:
+      - "4201:80"
+

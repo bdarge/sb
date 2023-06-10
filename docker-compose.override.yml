@@ -1,0 +1,44 @@
+version: "3.9"
+
+services:
+  db:
+    volumes:
+      - data:/var/lib/mysql
+  api:
+    volumes:
+      - ./api:/app
+      - ./config/api:/app/envs
+      - ./misc:/misc
+    working_dir: /app
+  migrator:
+    build:
+      context: auth
+      dockerfile: Dockerfile.grpc
+    volumes:
+      - ./api:/app
+      - ./misc:/misc
+      - ./config/api/:/app/envs
+    working_dir: /app
+  auth:
+    build:
+      context: auth
+      dockerfile: Dockerfile.grpc
+    volumes:
+      - ./auth:/app
+      - ./config/auth/:/app/envs
+      - ./misc:/misc
+    working_dir: /app
+  gateway:
+    build:
+      context: auth
+      dockerfile: Dockerfile.grpc
+    volumes:
+      - ./api-gateway:/app
+      - ./config/gateway/:/app/envs
+      - ./misc:/misc
+    working_dir: /app
+  ui:
+    volumes:
+      - ./ui:/app
+volumes:
+  data: {}
