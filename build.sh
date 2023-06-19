@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -x
-
 usage() {
   echo "Usage:"
   echo "$0 [-r <rebuild image>]"
