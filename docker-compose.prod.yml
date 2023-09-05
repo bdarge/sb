@@ -5,39 +5,36 @@ services:
     volumes:
       - data:/var/lib/mysql
   api:
-    build:
-      target: prod
+    image: "ghcr.io/bdarge/sb-api:0.0.1-alpha"
     volumes:
       - ./config/api/:/app/envs
       - ./misc:/misc
   migrator:
-    build:
-      target: prod
+    image: "ghcr.io/bdarge/sb-api:0.0.1-alpha"
     volumes:
       - ./api/db:/app/db
       - ./config/api/:/app/envs
       - ./misc:/misc
   gateway:
-    build:
-      target: prod
+    image: "api-gateway-0.0.3"
     volumes:
       - ./config/gateway/:/app/envs
       - ./misc:/misc
     environment:
       GIN_MODE: release
   auth:
-    build:
-      target: prod
+    image: "ghcr.io/bdarge/sb-auth:0.0.1-alpha"
     volumes:
       - ./config/auth/:/app/envs
       - ./misc:/misc
   ui:
-    build:
-      target: prod
-      args:
-        - NODE_ENV=PROD
-        - API_BASE_URL=http://127.0.0.1:3000/v1
+    image: "ui-0.0.3"
     environment:
-      NODE_ENV: PROD
+      ENVIRONMENT: prod
+#    volumes:
+#      - ${PWD}/ui/ssl/:/etc/nginx/certs
+#      - ${PWD}/ui/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "4201:80"
 volumes:
   data: {}

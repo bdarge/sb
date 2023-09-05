@@ -5,6 +5,10 @@ services:
     volumes:
       - data:/var/lib/mysql
   api:
+    build:
+      target: dev
+      context: api
+      dockerfile: Dockerfile.grpc
     volumes:
       - ./api:/app
       - ./config/api:/app/envs
@@ -12,7 +16,8 @@ services:
     working_dir: /app
   migrator:
     build:
-      context: auth
+      target: dev_migrator
+      context: api
       dockerfile: Dockerfile.grpc
     volumes:
       - ./api:/app
@@ -21,6 +26,7 @@ services:
     working_dir: /app
   auth:
     build:
+      target: dev
       context: auth
       dockerfile: Dockerfile.grpc
     volumes:
@@ -30,7 +36,8 @@ services:
     working_dir: /app
   gateway:
     build:
-      context: auth
+      target: dev
+      context: api-gateway
       dockerfile: Dockerfile.grpc
     volumes:
       - ./api-gateway:/app
@@ -38,7 +45,12 @@ services:
       - ./misc:/misc
     working_dir: /app
   ui:
+    build:
+      context: ui
+      target: dev
     volumes:
       - ./ui:/app
+    ports:
+      - "4201:80"
 volumes:
   data: {}

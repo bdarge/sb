@@ -22,10 +22,6 @@ services:
     platform: linux/arm64
     depends_on:
       - db
-    build:
-      target: dev
-      context: api
-      dockerfile: Dockerfile.grpc
     ports:
       - "50052:50052"
     command: >
@@ -34,10 +30,6 @@ services:
     image: sb-api
     depends_on:
       - db
-    build:
-      target: dev_migrator
-      context: api
-      dockerfile: Dockerfile.grpc
     environment:
       MIGRATOR: 'true'
     command: >
@@ -49,10 +41,6 @@ services:
     platform: linux/arm64
     depends_on:
       - db
-    build:
-      target: dev
-      context: auth
-      dockerfile: Dockerfile.grpc
     ports:
       - "50051:50051"
     command: >
@@ -65,10 +53,6 @@ services:
     depends_on:
       - auth
       - api
-    build:
-      target: dev
-      context: api-gateway
-      dockerfile: Dockerfile.grpc
     ports:
       - "3000:3000"
     command: >
@@ -77,9 +61,5 @@ services:
     depends_on:
       - db
     image: sb-ui
-    build:
-      context: ui
-      target: dev
-    ports:
-      - "4201:80"
+
 

@@ -49,9 +49,10 @@ if ! "$DEL"; then
     file="-f docker-compose.yml"
   fi
 
-  if "$rebuild"; then
+  if [ "$rebuild" ] && [ -z "$prod" ]; then
     docker compose $file up --build -d
   else
+    echo "creating for production ..."
     docker compose $file up  -d
   fi
 fi
