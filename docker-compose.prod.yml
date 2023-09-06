@@ -16,7 +16,7 @@ services:
       - ./config/api/:/app/envs
       - ./misc:/misc
   gateway:
-    image: "api-gateway-0.0.3"
+    image: "ghcr.io/bdarge/sb-api-gateway:0.0.1-alpha"
     volumes:
       - ./config/gateway/:/app/envs
       - ./misc:/misc
@@ -28,7 +28,7 @@ services:
       - ./config/auth/:/app/envs
       - ./misc:/misc
   ui:
-    image: "ui-0.0.3"
+    image: "ghcr.io/bdarge/sb-ui:0.0.1-alpha"
     environment:
       ENVIRONMENT: prod
 #    volumes:
