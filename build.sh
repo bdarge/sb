@@ -1,46 +1,48 @@
 #!/bin/bash
 
 usage() {
+  echo ""
+  echo "A script to kill all containers and re-run them again except option -d which removes contains and volumes only."
+  echo ""
   echo "Usage:"
-  echo "$0 [-r <rebuild image>]"
+  echo "$0 [-d <delete containers, and volumes> -r <rebuild image> -c <clean volume> -p <deploy prod images>]"
+  echo "Note: The other flags have no effect, if -d is set"
+  echo ""
   exit
 }
 
 rebuild=false
 clean=false
 prod=false
-DEL=false
+del=false
 
-while getopts ':rcdhp' opt ; do
-   case $opt in
-      r) rebuild=true
-        ;;
-      c) clean=true
-        ;;
-      d) DEL=true
-        ;;
-      p) prod=true
-        ;;
-      h)
-         usage
-         exit
-         ;;
-      *)
-         echo "Error: Invalid option"
-         usage
-         exit 1 ;;
-   esac
+while [ "$1" != "" ] ; do
+    case $1 in
+        -r | --rebuild )
+                                rebuild=true
+                                ;;
+        -c | --clean )          clean=true
+                                ;;
+        -p | --prod )           prod=true
+                                ;;
+        -d | --del )            del=true
+                                ;;
+        -h | --help )           usage
+                                exit
+                                ;;
+        * )                     usage
+                                exit 1
+    esac
+    shift
 done
-
-shift "$((OPTIND - 1))"
 
 docker compose down
 
-if "$clean" || "$DEL"; then
+if "$clean" || "$del"; then
   docker volume rm sb_data
 fi
 
-if ! "$DEL"; then
+if ! "$del"; then
   file=""
 
   if "$prod"; then
