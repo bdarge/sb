@@ -1,0 +1,61 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "sb.fullname" . }}-migration-job
+  labels:
+    {{- include "sb.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      {{- with .Values.api.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "sb.labels" . | nindent 8 }}
+        app: {{ template "sb.name" . }}-api
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "sb.serviceAccountName" . }}
+      initContainers:
+        - name: wait-for-mysql
+          image: nfs.my.home:5000/busybox:latest
+          imagePullPolicy: IfNotPresent
+          command: ['sh', '-c', 'until nc -vz ${SVC_NAME} 3308; do echo "Waiting for mysql db..."; sleep 3; done;']
+          env:
+            - name: SVC_NAME
+              value: {{ include "sb.fullname" . }}-db-svc
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.migration.image.repository }}:{{ .Values.migration.image.tag | default .Chart.AppVersion }}"
+          command: ["/bin/bash"]
+          args:
+            - "-c"
+            - >-
+              git clone --single-branch --branch {{ .Values.migration.branch }} {{ .Values.migration.repoUrl }} &&
+                /app/api
+          env:
+            - name: MIGRATOR
+              value: "true"
+            - name: PATH_TO_CONFIG
+              value: /app/config
+            - name: GIT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sb.name" . }}-git-secret
+                  key: GIT_TOKEN
+          volumeMounts:
+            - name: config
+              mountPath: "/app/config"
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "sb.fullname" . }}-api-config
+            items:
+            - key: "sm.yaml"
+              path: "sm.yaml"
+      restartPolicy: {{ .Values.migration.job.restartPolicy }}

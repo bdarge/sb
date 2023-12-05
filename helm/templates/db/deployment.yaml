@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sb.fullname" . }}-db
+  labels:
+    {{- include "sb.labels" . | nindent 4 }}
+    app: {{ template "sb.name" . }}-db
+spec:
+{{- if not .Values.db.autoscaling.enabled }}
+  replicas: {{ .Values.db.replicaCount }}
+{{- end }}
+  selector:
+    matchLabels:
+      app: {{ template "sb.name" . }}-db
+  template:
+    metadata:
+    {{- with .Values.db.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      labels:
+        {{- include "sb.labels" . | nindent 8 }}
+        app: {{ template "sb.name" . }}-db
+    spec:
+      serviceAccountName: {{ include "sb.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.db.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.db.securityContext | nindent 12 }}
+          image: "{{ .Values.db.image.repository }}:{{ .Values.db.image.tag | default .Chart.AppVersion }}"
+          args: ["--default-authentication-plugin=mysql_native_password"]
+          imagePullPolicy: {{ .Values.db.image.pullPolicy }}
+          env:
+            - name: MYSQL_DATABASE
+              value: {{ .Values.db.mainDb.database}}
+            - name: MYSQL_USER
+              value: {{ .Values.db.mainDb.user}}
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sb.name" . }}-secret
+                  key: MYSQL_USER_PWD
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "sb.name" . }}-secret
+                  key: MYSQL_ROOT_PWD
+          ports:
+            - name: http
+              containerPort: 3306
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: data
+          livenessProbe:
+            exec:
+              command:
+                - bash
+                - "-c"
+                - |
+                - mysqladmin -uroot -p$MYSQL_ROOT_PASSWORD ping &> /dev/null
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            exec:
+              command:
+                - bash
+                - "-c"
+                - |
+                - mysql -uroot -p$MYSQL_ROOT_PASSWORD -h 127.0.0.1 -e 'SELECT 1;'
+            initialDelaySeconds: 30
+            periodSeconds: 2
+            timeoutSeconds: 1
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "sb.fullname" . }}-data
