@@ -21,9 +21,10 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "sb.serviceAccountName" . }}
+      dnsPolicy: {{ .Values.dnsPolicy }}
       initContainers:
         - name: wait-for-mysql
-          image: nfs.my.home:5000/busybox:latest
+          image: busybox:latest
           imagePullPolicy: IfNotPresent
           command: ['sh', '-c', 'until nc -vz ${SVC_NAME} 3308; do echo "Waiting for mysql db..."; sleep 3; done;']
           env:

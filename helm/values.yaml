@@ -53,6 +53,8 @@ image:
 imagePullSecrets:
   - name: "sb-registry"
 
+dnsPolicy: "Default"
+
 db:
   autoscaling:
     enabled: false

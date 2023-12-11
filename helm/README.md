@@ -17,9 +17,9 @@ echo cGFzc3dvcmQh | base64 --decode
 helm secrets install sb helm/ -f helm/values.yaml -f helm/helm_vars/secrets.yaml
 ```
 
--  Mount iscsi logical volume to troubleshooting
+- List container images
 ```console
-pi@nfs:~ $ sudo mount /dev/tecmint_iscsi/tecmint_lun1 /mnt/fcroot -o rw,user
+sudo crictl images
 ```
 
 
