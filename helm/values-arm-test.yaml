@@ -1,5 +1,0 @@
-db:
-  migration: "sb-private/api/db/migrations"
-migration:
-  repoUrl: "github.com/bdarge/sb-private.git"
-  branch: db-migration-refactor

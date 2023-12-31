@@ -5,30 +5,30 @@ services:
     volumes:
       - data:/var/lib/mysql
   api:
-    image: "ghcr.io/bdarge/sb-api:0.0.1-alpha"
+    image: "ghcr.io/bdarge/sb-api:0.0.3-alpha"
     volumes:
       - ./config/api/:/app/envs
       - ./misc:/misc
   migrator:
-    image: "ghcr.io/bdarge/sb-api:0.0.1-alpha"
+    image: "ghcr.io/bdarge/sb-api:0.0.3-alpha"
     volumes:
       - ./api/db:/app/db
       - ./config/api/:/app/envs
       - ./misc:/misc
   gateway:
-    image: "ghcr.io/bdarge/sb-api-gateway:0.0.1-alpha"
+    image: "ghcr.io/bdarge/sb-api-gateway:0.0.3-alpha"
     volumes:
       - ./config/gateway/:/app/envs
       - ./misc:/misc
     environment:
       GIN_MODE: release
   auth:
-    image: "ghcr.io/bdarge/sb-auth:0.0.1-alpha"
+    image: "ghcr.io/bdarge/sb-auth:0.0.3-alpha"
     volumes:
       - ./config/auth/:/app/envs
       - ./misc:/misc
   ui:
-    image: "ghcr.io/bdarge/sb-ui:0.0.1-alpha"
+    image: "ghcr.io/bdarge/sb-ui:0.0.3-alpha"
     environment:
       ENVIRONMENT: prod
 #    volumes:
