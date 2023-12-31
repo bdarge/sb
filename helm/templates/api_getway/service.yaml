@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sb.fullname" . }}-gw-svc
+  labels:
+    {{- include "sb.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.apiGateway.service.type }}
+  ports:
+    - port: {{ .Values.apiGateway.service.port }}
+      protocol: TCP
+      name: http
+      targetPort: {{ .Values.apiGateway.service.targetPort }}
+  selector:
+    app: {{ template "sb.name" . }}-api-gw
