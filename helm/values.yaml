@@ -19,7 +19,7 @@ ingress:
 #     kubernetes.io/tls-acme: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /$2
   hosts:
-    - host: sb-info.my.home
+    - host: sb.my.home
       paths:
         - "/"
         - "/api"
@@ -48,12 +48,25 @@ affinity: {}
 
 image:
   registry:
-    url: "ghcr.io"
+    ghcr:
+      url: "ghcr.io"
+    local:
+      url: "nfs.my.home:5000"
 
 imagePullSecrets:
-  - name: "sb-registry"
+  ghcr:
+    - name: "sb-registry"
+  local:
+    - name: "sb-local-registry"
 
-dnsPolicy: "Default"
+
+dnsPolicy: "ClusterFirst"
+
+# need to set number of dots value (ndots) b/c dns is not working
+# https://pracucci.com/kubernetes-dns-resolution-ndots-options-and-why-it-may-affect-application-performances.html
+# https://github.com/k3s-io/k3s/issues/2801
+dnsConfig:
+  ndots: 1
 
 db:
   autoscaling:
@@ -61,7 +74,6 @@ db:
     minReplicas: 1
     maxReplicas: 100
     targetCPUUtilizationPercentage: 80
-  securityContext: {}
   replicaCount: 1
   image:
     repository: arm64v8/mysql
@@ -78,24 +90,21 @@ db:
   mainDb:
     user: docker
     database: profile
-  migration: "sb/api/db/migrations"
 
 api:
   autoscaling:
     enabled: false
+  securityContext: {}
   replicaCount: 1
   service:
     type: ClusterIP
     port: 50052
     targetPort: 50052
-  baseUrl: "http://sb-info.my.home/api/"
   key: "exp"
   image:
     repository: "ghcr.io/bdarge/sb-api"
     pullPolicy: Always
-    tag: "0.0.1-alpha"
-  env:
-    dev: "sm.yaml"
+    tag: 0.0.3-alpha
 
 auth:
   autoscaling:
@@ -109,32 +118,31 @@ auth:
   image:
     repository: "ghcr.io/bdarge/sb-auth"
     pullPolicy: Always
-    tag: "0.0.1-alpha"
-  env:
-    dev: "sm.yaml"
+    tag: 0.0.3-alpha
 
 apiGateway:
   autoscaling:
     enabled: false
+  securityContext: {}
   replicaCount: 1
   service:
     type: ClusterIP
     port: 3000
     targetPort: 3000
-  baseUrl: "http://sb-info.my.home/api/"
+  baseUrl: "http://sb.my.home/api/v1"
   key: "exp"
   image:
     repository: "ghcr.io/bdarge/sb-api-gateway"
     pullPolicy: Always
-    tag: "0.0.1-alpha"
-  env:
-    dev: "sm.yaml"
+    tag: 0.0.3-alpha
 
 ui:
+  autoscaling:
+    enabled: false
   image:
     repository: "ghcr.io/bdarge/sb-ui"
     pullPolicy: Always
-    tag: "0.0.1-alpha"
+    tag: 0.0.2-alpha
   service:
     type: ClusterIP
     port: 80
@@ -144,12 +152,13 @@ migration:
   image:
     repository: "ghcr.io/bdarge/sb-api"
     pullPolicy: IfNotPresent
-    tag: "0.0.1-alpha"
+    tag: "0.0.2-alpha"
   job:
     restartPolicy: Never
   path: "db"
   repoUrl: "https://github.com/bdarge/sb-api.git"
   branch: main
+  migrationPath: "sb-api/db/migrations"
 
 wait:
   image:

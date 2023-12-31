@@ -14,21 +14,13 @@ spec:
       app: {{ template "sb.name" . }}-db
   template:
     metadata:
-    {{- with .Values.db.podAnnotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-    {{- end }}
       labels:
         {{- include "sb.labels" . | nindent 8 }}
         app: {{ template "sb.name" . }}-db
     spec:
       serviceAccountName: {{ include "sb.serviceAccountName" . }}
-      securityContext:
-        {{- toYaml .Values.db.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.db.securityContext | nindent 12 }}
           image: "{{ .Values.db.image.repository }}:{{ .Values.db.image.tag | default .Chart.AppVersion }}"
           args: ["--default-authentication-plugin=mysql_native_password"]
           imagePullPolicy: {{ .Values.db.image.pullPolicy }}

@@ -1,7 +1,7 @@
 {{- if .Values.ingress.enabled -}}
   {{- $fullName := include "sb.fullname" . -}}
   {{- $svcUiPort := .Values.ui.service.port -}}
-  {{- $svcApiPort := .Values.api.service.port -}}
+  {{- $svcApiGatewayPort := .Values.apiGateway.service.port -}}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -30,18 +30,18 @@ spec:
       http:
         paths:
           - path: /()(.*)
-            pathType: Prefix
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: {{ $fullName }}-ui-svc
                 port:
                   number: {{ $svcUiPort }}
           - path: /api(/|$)(.*)
-            pathType: Prefix
+            pathType: ImplementationSpecific
             backend:
               service:
-                name: {{ $fullName }}-api-svc
+                name: {{ $fullName }}-gw-svc
                 port:
-                  number: {{ $svcApiPort }}
+                  number: {{ $svcApiGatewayPort }}
     {{- end }}
   {{- end }}

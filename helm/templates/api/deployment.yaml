@@ -14,22 +14,16 @@ spec:
       app: {{ template "sb.name" . }}-api
   template:
     metadata:
-    {{- with .Values.api.podAnnotations }}
-      annotations:
-        {{- toYaml . | nindent 8 }}
-    {{- end }}
       labels:
         {{- include "sb.labels" . | nindent 8 }}
         app: {{ template "sb.name" . }}-api
     spec:
-      {{- with .Values.imagePullSecrets }}
+      {{- with .Values.imagePullSecrets.ghcr }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "sb.serviceAccountName" . }}
       dnsPolicy: {{ .Values.dnsPolicy }}
-      securityContext:
-        {{- toYaml .Values.api.podSecurityContext | nindent 8 }}
       initContainers:
         - name: "{{ .Chart.Name }}-init"
           image: "{{ .Values.wait.image.repository }}:{{ .Values.wait.image.tag | default .Chart.AppVersion }}"
@@ -44,10 +38,10 @@ spec:
           image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.api.image.pullPolicy }}
           env:
+            - name: ENV
+              value: "prod"
             - name: GIN_MODE
               value: release
-            - name: PATH_TO_CONFIG
-              value: /app/config
           ports:
             - name: http
               containerPort: {{ .Values.api.service.port }}
@@ -55,16 +49,14 @@ spec:
           volumeMounts:
             - name: config
               mountPath: "/app/envs"
-#          livenessProbe:
-#            httpGet:
-#              path: /health
-#              port: 8080
-#            initialDelaySeconds: 5
-#          readinessProbe:
-#            httpGet:
-#              path: /health
-#              port: 8080
-#            initialDelaySeconds: 2
+          livenessProbe:
+            grpc:
+              port: {{ .Values.api.service.port }}
+            initialDelaySeconds: 10
+          readinessProbe:
+            grpc:
+              port: {{ .Values.api.service.port }}
+            initialDelaySeconds: 2
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
@@ -72,5 +64,9 @@ spec:
           configMap:
             name: {{ include "sb.fullname" . }}-api-config
             items:
-            - key: "sm.yaml"
-              path: "sm.yaml"
+            - key: "prod.env"
+              path: "prod.env"
+      dnsConfig:
+        options:
+          - name: ndots
+            value: {{ .Values.dnsConfig.ndots | quote }}

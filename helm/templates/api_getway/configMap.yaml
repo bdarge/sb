@@ -1,14 +1,12 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "sb.fullname" . }}-api-gateway-config
+  name: {{ include "sb.fullname" . }}-api-gw-config
   annotations:
     "kubernetes.io/service-account.name": {{ include "sb.serviceAccountName" . }}
 data:
-  sm.yaml: |
-    ---
-    SERVER_PORT: {{ .Values.apiGateway.service.targetPort }}
-    AUTH_SVC_URL: localhost:50051
-    API_SVC_URL: localhost:50052
-    BASE_URL: {{ .Values.api.baseUrl | quote }}
-    DOC_URL: {{ .Values.api.baseUrl | quote }}
+  prod.env: |
+    PORT=":{{ .Values.apiGateway.service.targetPort }}"
+    AUTH_SVC_URL="{{ include "sb.fullname" . }}-auth-svc:{{ .Values.auth.service.targetPort }}"
+    API_SVC_URL="{{ include "sb.fullname" . }}-api-svc:{{ .Values.api.service.targetPort }}"
+    BASE_URL={{ .Values.apiGateway.baseUrl | quote }}

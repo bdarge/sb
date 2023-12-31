@@ -16,7 +16,7 @@ spec:
         {{- include "sb.labels" . | nindent 8 }}
         app: {{ template "sb.name" . }}-api
     spec:
-      {{- with .Values.imagePullSecrets }}
+      {{- with .Values.imagePullSecrets.ghcr }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -40,10 +40,10 @@ spec:
               git clone --single-branch --branch {{ .Values.migration.branch }} {{ .Values.migration.repoUrl }} &&
                 /app/api
           env:
+            - name: ENV
+              value: "prod"
             - name: MIGRATOR
               value: "true"
-            - name: PATH_TO_CONFIG
-              value: /app/config
             - name: GIT_TOKEN
               valueFrom:
                 secretKeyRef:
@@ -51,12 +51,16 @@ spec:
                   key: GIT_TOKEN
           volumeMounts:
             - name: config
-              mountPath: "/app/config"
+              mountPath: "/app/envs"
       volumes:
         - name: config
           configMap:
             name: {{ include "sb.fullname" . }}-api-config
             items:
-            - key: "sm.yaml"
-              path: "sm.yaml"
+            - key: "prod.env"
+              path: "prod.env"
       restartPolicy: {{ .Values.migration.job.restartPolicy }}
+      dnsConfig:
+        options:
+          - name: ndots
+            value: {{ .Values.dnsConfig.ndots | quote }}

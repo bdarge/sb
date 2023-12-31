@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "sb.fullname" . }}-api-gateway-svc
+  name: {{ include "sb.fullname" . }}-gw-svc
   labels:
     {{- include "sb.labels" . | nindent 4 }}
 spec:
@@ -12,4 +12,4 @@ spec:
       name: http
       targetPort: {{ .Values.apiGateway.service.targetPort }}
   selector:
-    app: {{ template "sb.name" . }}-api-gateway
+    app: {{ template "sb.name" . }}-api-gw

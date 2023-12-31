@@ -5,9 +5,8 @@ metadata:
   annotations:
     "kubernetes.io/service-account.name": {{ include "sb.serviceAccountName" . }}
 data:
-  sm.yaml: |
-    ---
-    DSN: "{{ .Values.db.mainDb.user }}:{{ .Values.db.mainDb.cred.user }}@tcp({{ include "sb.fullname" . }}-db-svc:{{ .Values.db.service.port }})/{{ .Values.db.mainDb.database }}?parseTime=true"
-    SERVER_PORT: {{ .Values.api.service.targetPort }}
-    MIGRATION_DIR: {{ .Values.db.migration | quote }}
-    DATABASE: {{ .Values.db.mainDb.database | quote }}
+  prod.env: |
+    DSN="{{ .Values.db.mainDb.user }}:{{ .Values.db.mainDb.cred.user }}@tcp({{ include "sb.fullname" . }}-db-svc:{{ .Values.db.service.port }})/{{ .Values.db.mainDb.database }}?parseTime=true"
+    PORT=":{{ .Values.api.service.targetPort }}"
+    MIGRATION_DIR={{ .Values.migration.migrationPath | quote }}
+    DATABASE={{ .Values.db.mainDb.database | quote }}

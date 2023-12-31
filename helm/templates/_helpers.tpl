@@ -55,7 +55,13 @@ Create the name of the service account to use
 
 
 {{- define "imagePullSecret" -}}
-{{- with .Values.image.registry }}
+{{- with .Values.image.registry.ghcr }}
 {{- printf "{\"auths\":{\"%s\":{\"username\":\"%s\",\"password\":\"%s\",\"email\":\"%s\",\"auth\":\"%s\"}}}" .url .credential.username .credential.password .credential.email (printf "%s:%s" .credential.username .credential.password | b64enc) | b64enc }}
+{{- end }}
+{{- end }}
+
+{{- define "imagePullSecretLocal" -}}
+{{- with .Values.image.registry.local }}
+{{- printf "{\"auths\":{\"%s\":{\"username\":\"%s\",\"password\":\"%s\",\"auth\":\"%s\"}}}" .url .credential.username .credential.password (printf "%s:%s" .credential.username .credential.password | b64enc) | b64enc }}
 {{- end }}
 {{- end }}
