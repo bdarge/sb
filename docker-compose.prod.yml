@@ -28,7 +28,7 @@ services:
       - ./config/auth/:/app/envs
       - ./misc:/misc
   ui:
-    image: "ghcr.io/bdarge/sb-ui:0.0.3-alpha"
+    image: "ghcr.io/bdarge/sb-ui:0.0.2-alpha"
     environment:
       ENVIRONMENT: prod
 #    volumes:
