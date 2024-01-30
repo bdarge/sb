@@ -24,16 +24,12 @@ services:
       - db
     ports:
       - "50052:50052"
-    command: >
-      sh -c "/misc/wait-for-it.sh 127.0.0.1:3308 -- /app/api"
   migrator:
     image: sb-api
     depends_on:
       - db
     environment:
       MIGRATOR: 'true'
-    command: >
-      sh -c "/misc/wait-for-it.sh 127.0.0.1:3308 -- /app/api"
   auth:
     hostname: auth
     restart: unless-stopped
@@ -43,8 +39,6 @@ services:
       - db
     ports:
       - "50051:50051"
-    command: >
-      sh -c "/misc/wait-for-it.sh 127.0.0.1:3308 -- /app/auth"
   gateway:
     hostname: gateway
     restart: unless-stopped
@@ -54,9 +48,7 @@ services:
       - auth
       - api
     ports:
-      - "3000:3000"
-    command: >
-      sh -c "/misc/wait-for-it.sh 127.0.0.1:3308 -- /app/gateway"
+      - "8080:3000"
   ui:
     depends_on:
       - db
