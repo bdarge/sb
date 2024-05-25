@@ -8,7 +8,7 @@ up: default
 
 up_prod: default
 	@echo "start locally but with remote images"
-	docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+	docker compose -f compose.yml -f compose.prod.yml up -d
 
 logs:
 	docker-compose logs -f
