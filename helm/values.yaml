@@ -19,7 +19,7 @@ ingress:
 #     kubernetes.io/tls-acme: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /$2
   hosts:
-    - host: sb.my.home
+    - host: sb.lan
       paths:
         - "/"
         - "/api"
@@ -129,7 +129,7 @@ ui:
   image:
     repository: "ghcr.io/bdarge/sb-ui"
     pullPolicy: Always
-    tag: 0.0.2-alpha
+    tag: 0.0.2-alpha.1
   service:
     type: LoadBalancer
     port: 80
