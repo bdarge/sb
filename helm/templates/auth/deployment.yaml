@@ -18,28 +18,53 @@ spec:
         {{- include "sb.labels" . | nindent 8 }}
         app: {{ template "sb.name" . }}-auth
     spec:
-      {{- with .Values.imagePullSecrets.ghcr }}
+      {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "sb.serviceAccountName" . }}
       dnsPolicy: {{ .Values.dnsPolicy }}
       initContainers:
-        - name: "{{ .Chart.Name }}-init"
-          image: "{{ .Values.wait.image.repository }}:{{ .Values.wait.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.wait.image.pullPolicy }}
-          args:
-            - "job"
-            - {{ printf "%s-migration-job" (include "sb.fullname" .) | quote }}
+        - name: wait-for-mysql
+          image: busybox:latest
+          imagePullPolicy: IfNotPresent
+          command: ['sh', '-c', 'until nc -vz ${SVC_NAME} 3308; do echo "Waiting for mysql db..."; sleep 3; done;']
+          env:
+            - name: SVC_NAME
+              value: {{ include "sb.fullname" . }}-db-svc
       containers:
         - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.auth.securityContext | nindent 12 }}
           image: "{{ .Values.auth.image.repository }}:{{ .Values.auth.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.auth.image.pullPolicy }}
           env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: sb-db
+                  key: password
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: sb-db
+                  key: username
             - name: ENV
               value: "prod"
             - name: GIN_MODE
               value: release
+            - name: DSN
+              value: "$(DB_USERNAME):$(DB_PASSWORD)@tcp({{ include "sb.fullname" . }}-db-svc:{{ .Values.db.service.port }})/{{ .Values.db.db_name }}?parseTime=true"
+            - name: JWT_TOKEN_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: "sb-jwt-key"
+                  key: jwt-key
+            - name: JWT_REFRESH_TOKEN_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: "sb-jwt-key"
+                  key: jwt-key
           ports:
             - name: http
               containerPort: {{ .Values.auth.service.port }}
@@ -64,3 +89,7 @@ spec:
             items:
               - key: "prod.env"
                 path: "prod.env"
+      dnsConfig:
+        options:
+          - name: ndots
+            value: {{ .Values.dnsConfig.ndots | quote }}

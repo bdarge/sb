@@ -6,6 +6,11 @@ metadata:
     "kubernetes.io/service-account.name": {{ include "sb.serviceAccountName" . }}
 data:
   prod.env: |
-    DSN="{{ .Values.db.mainDb.user }}:{{ .Values.db.mainDb.cred.user }}@tcp({{ include "sb.fullname" . }}-db-svc:{{ .Values.db.service.port }})/{{ .Values.db.mainDb.database }}?parseTime=true"
+    DB_PORT={{ .Values.db.service.port }}
+    DB_SVC="{{ include "sb.fullname" . }}-db-svc"
     PORT=":{{ .Values.auth.service.targetPort }}"
-    JWT_SECRET_KEY={{ .Values.auth.jwtKey }}
+    JWT_REFRESH_TOKEN_EXP_ON=24
+    JWT_TOKEN_ISSUER=sb-auth
+    JWT_TOKEN_EXP_ON=15
+    DSN=""
+

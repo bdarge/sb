@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "sb.fullname" . }}-post-install-config
+  annotations:
+    "kubernetes.io/service-account.name": {{ include "sb.serviceAccountName" . }}
+data:
+  prod.env: |
+    MIGRATION_DIR={{ .Values.migration.migrationPath | quote }}

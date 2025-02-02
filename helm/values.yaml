@@ -11,7 +11,7 @@ serviceAccount:
   annotations: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: ""
+  name: "sb"
 
 ingress:
   enabled: true
@@ -46,20 +46,6 @@ tolerations: []
 
 affinity: {}
 
-image:
-  registry:
-    ghcr:
-      url: "ghcr.io"
-    local:
-      url: "nfs.my.home:5000"
-
-imagePullSecrets:
-  ghcr:
-    - name: "sb-registry"
-  local:
-    - name: "sb-local-registry"
-
-
 dnsPolicy: "ClusterFirst"
 
 # need to set number of dots value (ndots) b/c dns is not working
@@ -76,20 +62,19 @@ db:
     targetCPUUtilizationPercentage: 80
   replicaCount: 1
   image:
-    repository: arm64v8/mysql
+    repository: mysql
     pullPolicy: IfNotPresent
-    # Overrides the image tag whose default is the chart appVersion.
-    tag: "latest"
+    tag: "9.1.0-oracle"
   service:
-    type: ClusterIP
+    type: LoadBalancer
     port: 3308
     targetPort: 3306
-  iscsiChap:
-    initiatorName: initiator
-    targetName: target
-  mainDb:
-    user: docker
-    database: profile
+  db_name: "profile"
+  nfs:
+    nfsProvisioner: nfs2.csi.k8s.io
+    volumeHandlePrefix: sb-node7.lan.odainfo.com
+    server: node7.lan.odainfo.com
+    share: /mnt/k8s-db-data/nfs4
 
 api:
   autoscaling:
@@ -103,12 +88,13 @@ api:
   key: "exp"
   image:
     repository: "ghcr.io/bdarge/sb-api"
-    pullPolicy: Always
-    tag: 0.0.3-alpha
+    pullPolicy: IfNotPresent
+    tag: 0.0.1-alpha.4
 
 auth:
   autoscaling:
     enabled: false
+  securityContext: {}
   replicaCount: 1
   service:
     type: ClusterIP
@@ -118,7 +104,7 @@ auth:
   image:
     repository: "ghcr.io/bdarge/sb-auth"
     pullPolicy: Always
-    tag: 0.0.3-alpha
+    tag: 0.0.1-alpha.7
 
 apiGateway:
   autoscaling:
@@ -126,17 +112,18 @@ apiGateway:
   securityContext: {}
   replicaCount: 1
   service:
-    type: ClusterIP
+    type: LoadBalancer
     port: 3000
     targetPort: 3000
-  baseUrl: "http://sb.my.home/api/v1"
+  baseUrl: "http://sb.lan/api/v1"
   key: "exp"
   image:
     repository: "ghcr.io/bdarge/sb-api-gateway"
     pullPolicy: Always
-    tag: 0.0.3-alpha
+    tag: 0.0.1-alpha.3
 
 ui:
+  replicaCount: 1
   autoscaling:
     enabled: false
   image:
@@ -144,15 +131,11 @@ ui:
     pullPolicy: Always
     tag: 0.0.2-alpha
   service:
-    type: ClusterIP
+    type: LoadBalancer
     port: 80
     targetPort: 80
 
 migration:
-  image:
-    repository: "ghcr.io/bdarge/sb-api"
-    pullPolicy: IfNotPresent
-    tag: "0.0.2-alpha"
   job:
     restartPolicy: Never
   path: "db"
@@ -160,12 +143,14 @@ migration:
   branch: main
   migrationPath: "sb-api/db/migrations"
 
-wait:
+postAction:
   image:
-    repository: nfs.my.home:5000/k8s-wait-for
+    name: alpine
     pullPolicy: IfNotPresent
-    # Overrides the image tag whose default is the chart appVersion.
     tag: "latest"
 
 git:
   username: bdarge
+
+imagePullSecrets: 
+  - name: ghcr

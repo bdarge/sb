@@ -18,19 +18,12 @@ spec:
         {{- include "sb.labels" . | nindent 8 }}
         app: {{ template "sb.name" . }}-api-gw
     spec:
-      {{- with .Values.imagePullSecrets.ghcr }}
+      {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "sb.serviceAccountName" . }}
       dnsPolicy: {{ .Values.dnsPolicy }}
-      initContainers:
-        - name: "{{ .Chart.Name }}-init"
-          image: "{{ .Values.wait.image.repository }}:{{ .Values.wait.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.wait.image.pullPolicy }}
-          args:
-            - "job"
-            - {{ printf "%s-migration-job" (include "sb.fullname" .) | quote }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -53,7 +46,9 @@ spec:
             httpGet:
               path: /health
               port: {{ .Values.apiGateway.service.port }}
-            initialDelaySeconds: 5
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 5
           readinessProbe:
             httpGet:
               path: /health
