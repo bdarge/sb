@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "sb.fullname" . }}-ui-svc
+  labels:
+    {{- include "sb.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.ui.service.type }}
+  ports:
+    - port: {{ .Values.ui.service.port }}
+      protocol: TCP
+      name: http
+      targetPort: {{ .Values.ui.service.targetPort }}
+  selector:
+    app: {{ template "sb.name" . }}-ui

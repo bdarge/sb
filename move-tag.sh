@@ -4,7 +4,7 @@
 usage() {
   echo "Usage:"
   echo "$0 [-t <tag> ] $1 [-o <owner> ] $3 [-s <new sha1>]"
-  echo "example move-tag.sh -t v0.0.1-alpha -o origin -s 5f6ad1f"
+  echo "example move-tag.sh -t v0.0.2-alpha -o origin -s 5f6ad1f"
   exit
 }
 

@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sb.fullname" . }}-ui
+  labels:
+    {{- include "sb.labels" . | nindent 4 }}
+    app: {{ template "sb.name" . }}-ui
+spec:
+{{- if not .Values.ui.autoscaling.enabled }}
+  replicas: {{ .Values.ui.replicaCount }}
+{{- end }}
+  selector:
+    matchLabels:
+      app: {{ template "sb.name" . }}-ui
+  template:
+    metadata:
+      labels:
+        {{- include "sb.labels" . | nindent 8 }}
+        app: {{ template "sb.name" . }}-ui
+    spec:
+      {{- with .Values.imagePullSecrets.ghcr }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "sb.serviceAccountName" . }}
+      dnsPolicy: {{ .Values.dnsPolicy }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.ui.image.repository }}:{{ .Values.ui.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.ui.image.pullPolicy }}
+          env:
+            - name: ENVIRONMENT
+              value: "prod"
+            - name: LOC
+              value: "k8s"
+          ports:
+            - name: http
+              containerPort: {{ .Values.ui.service.port }}
+              protocol: TCP
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

@@ -10,3 +10,6 @@
 [submodule "auth"]
 	path = auth
 	url = git@github.com:bdarge/sb-auth.git
+[submodule "currency"]
+	path = currency
+	url = git@github.com:bdarge/currency-svc.git

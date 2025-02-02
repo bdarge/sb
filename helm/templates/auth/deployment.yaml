@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sb.fullname" . }}-auth
+  labels:
+    {{- include "sb.labels" . | nindent 4 }}
+    app: {{ template "sb.name" . }}-auth
+spec:
+{{- if not .Values.auth.autoscaling.enabled }}
+  replicas: {{ .Values.auth.replicaCount }}
+{{- end }}
+  selector:
+    matchLabels:
+      app: {{ template "sb.name" . }}-auth
+  template:
+    metadata:
+      labels:
+        {{- include "sb.labels" . | nindent 8 }}
+        app: {{ template "sb.name" . }}-auth
+    spec:
+      {{- with .Values.imagePullSecrets.ghcr }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "sb.serviceAccountName" . }}
+      dnsPolicy: {{ .Values.dnsPolicy }}
+      initContainers:
+        - name: "{{ .Chart.Name }}-init"
+          image: "{{ .Values.wait.image.repository }}:{{ .Values.wait.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.wait.image.pullPolicy }}
+          args:
+            - "job"
+            - {{ printf "%s-migration-job" (include "sb.fullname" .) | quote }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.auth.image.repository }}:{{ .Values.auth.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.auth.image.pullPolicy }}
+          env:
+            - name: ENV
+              value: "prod"
+            - name: GIN_MODE
+              value: release
+          ports:
+            - name: http
+              containerPort: {{ .Values.auth.service.port }}
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: "/app/envs"
+          livenessProbe:
+            grpc:
+              port: {{ .Values.auth.service.port }}
+            initialDelaySeconds: 10
+          readinessProbe:
+            grpc:
+              port: {{ .Values.auth.service.port }}
+            initialDelaySeconds: 2
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "sb.fullname" . }}-auth-config
+            items:
+              - key: "prod.env"
+                path: "prod.env"

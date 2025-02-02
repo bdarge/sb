@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   db:
     image: arm64v8/mysql
@@ -7,7 +5,7 @@ services:
     cap_add:
       - SYS_NICE
     # use the old authentication protocol, so I can use the popular mysql nodejs package
-    command: --default-authentication-plugin=mysql_native_password
+    command: --default-authentication-plugin=caching_sha2_password
     environment:
       MYSQL_ROOT_PASSWORD: 'password'
       MYSQL_DATABASE: 'sb'
@@ -24,16 +22,19 @@ services:
       - db
     ports:
       - "50052:50052"
-    command: >
-      sh -c "/misc/wait-for-it.sh 127.0.0.1:3308 -- /app/api"
+  currency:
+    hostname: currency
+    restart: unless-stopped
+    image: sb-currency
+    platform: linux/arm64
+    ports:
+      - "9002:9002"
   migrator:
     image: sb-api
     depends_on:
       - db
     environment:
       MIGRATOR: 'true'
-    command: >
-      sh -c "/misc/wait-for-it.sh 127.0.0.1:3308 -- /app/api"
   auth:
     hostname: auth
     restart: unless-stopped
@@ -43,8 +44,6 @@ services:
       - db
     ports:
       - "50051:50051"
-    command: >
-      sh -c "/misc/wait-for-it.sh 127.0.0.1:3308 -- /app/auth"
   gateway:
     hostname: gateway
     restart: unless-stopped
@@ -54,12 +53,8 @@ services:
       - auth
       - api
     ports:
-      - "3000:3000"
-    command: >
-      sh -c "/misc/wait-for-it.sh 127.0.0.1:3308 -- /app/gateway"
+      - "8080:3000"
   ui:
     depends_on:
       - db
     image: sb-ui
-
-

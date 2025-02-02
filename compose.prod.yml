@@ -1,0 +1,44 @@
+services:
+  db:
+    volumes:
+      - data:/var/lib/mysql
+  api:
+    image: "ghcr.io/bdarge/sb-api:0.0.3-alpha"
+    volumes:
+      - ./config/api/:/app/envs
+      - ./scripts:/app/scripts
+    command: >
+      sh -c "/app/scripts/wait-for-it.sh 127.0.0.1:3308 -- /app/api"
+  migrator:
+    image: "ghcr.io/bdarge/sb-api:0.0.3-alpha"
+    volumes:
+      - ./api/db:/app/db
+      - ./config/api/:/app/envs
+      - ./scripts:/app/scripts
+  gateway:
+    image: "ghcr.io/bdarge/sb-api-gateway:0.0.3-alpha"
+    volumes:
+      - ./config/gateway/:/app/envs
+      - ./scripts:/app/scripts
+    environment:
+      GIN_MODE: release
+    command: >
+      sh -c "/app/scripts/wait-for-it.sh 127.0.0.1:3308 -- /app/gateway"
+  auth:
+    image: "ghcr.io/bdarge/sb-auth:0.0.3-alpha"
+    volumes:
+      - ./config/auth/:/app/envs
+      - ./scripts:/app/scripts
+    command: >
+      sh -c "/app/scripts/wait-for-it.sh 127.0.0.1:3308 -- /app/auth"
+  ui:
+    image: "ghcr.io/bdarge/sb-ui:0.0.2-alpha"
+    environment:
+      ENVIRONMENT: prod
+#    volumes:
+#      - ${PWD}/ui/ssl/:/etc/nginx/certs
+#      - ${PWD}/ui/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+#    ports:
+#      - "4201:80"
+volumes:
+  data: {}

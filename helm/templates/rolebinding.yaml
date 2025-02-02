@@ -1,0 +1,16 @@
+{{- if .Values.rbac.create -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "sb.serviceAccountName" . }}-binding
+  labels:
+    {{- include "sb.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  name: {{ template "sb.serviceAccountName" . }}-role
+  kind: Role
+subjects:
+- kind: ServiceAccount
+  name: {{ template "sb.serviceAccountName" . }}
+  namespace: default
+{{- end -}}

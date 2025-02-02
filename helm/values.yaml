@@ -1,0 +1,171 @@
+nameOverride: ""
+fullnameOverride: ""
+rbac:
+  # Specifies whether RBAC resources should be created
+  create: true
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+ingress:
+  enabled: true
+  annotations:
+#     kubernetes.io/tls-acme: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+  hosts:
+    - host: sb.my.home
+      paths:
+        - "/"
+        - "/api"
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+image:
+  registry:
+    ghcr:
+      url: "ghcr.io"
+    local:
+      url: "nfs.my.home:5000"
+
+imagePullSecrets:
+  ghcr:
+    - name: "sb-registry"
+  local:
+    - name: "sb-local-registry"
+
+
+dnsPolicy: "ClusterFirst"
+
+# need to set number of dots value (ndots) b/c dns is not working
+# https://pracucci.com/kubernetes-dns-resolution-ndots-options-and-why-it-may-affect-application-performances.html
+# https://github.com/k3s-io/k3s/issues/2801
+dnsConfig:
+  ndots: 1
+
+db:
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 100
+    targetCPUUtilizationPercentage: 80
+  replicaCount: 1
+  image:
+    repository: arm64v8/mysql
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "latest"
+  service:
+    type: ClusterIP
+    port: 3308
+    targetPort: 3306
+  iscsiChap:
+    initiatorName: initiator
+    targetName: target
+  mainDb:
+    user: docker
+    database: profile
+
+api:
+  autoscaling:
+    enabled: false
+  securityContext: {}
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 50052
+    targetPort: 50052
+  key: "exp"
+  image:
+    repository: "ghcr.io/bdarge/sb-api"
+    pullPolicy: Always
+    tag: 0.0.3-alpha
+
+auth:
+  autoscaling:
+    enabled: false
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 50051
+    targetPort: 50051
+  key: "exp"
+  image:
+    repository: "ghcr.io/bdarge/sb-auth"
+    pullPolicy: Always
+    tag: 0.0.3-alpha
+
+apiGateway:
+  autoscaling:
+    enabled: false
+  securityContext: {}
+  replicaCount: 1
+  service:
+    type: ClusterIP
+    port: 3000
+    targetPort: 3000
+  baseUrl: "http://sb.my.home/api/v1"
+  key: "exp"
+  image:
+    repository: "ghcr.io/bdarge/sb-api-gateway"
+    pullPolicy: Always
+    tag: 0.0.3-alpha
+
+ui:
+  autoscaling:
+    enabled: false
+  image:
+    repository: "ghcr.io/bdarge/sb-ui"
+    pullPolicy: Always
+    tag: 0.0.2-alpha
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 80
+
+migration:
+  image:
+    repository: "ghcr.io/bdarge/sb-api"
+    pullPolicy: IfNotPresent
+    tag: "0.0.2-alpha"
+  job:
+    restartPolicy: Never
+  path: "db"
+  repoUrl: "https://github.com/bdarge/sb-api.git"
+  branch: main
+  migrationPath: "sb-api/db/migrations"
+
+wait:
+  image:
+    repository: nfs.my.home:5000/k8s-wait-for
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: "latest"
+
+git:
+  username: bdarge

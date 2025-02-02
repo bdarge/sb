@@ -5,7 +5,7 @@
 
 - git submodule update --init
 
-- `./build.sh -p` for production or `./build.sh`
+- `./build.sh -p` or for production `./build.sh`
 
 ## Database
 generate migration script

@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   db:
     volumes:
@@ -12,16 +10,17 @@ services:
     volumes:
       - ./api:/app
       - ./config/api:/app/envs
-      - ./misc:/misc
+    working_dir: /app
+  currency:
+    build:
+      context: currency
+      dockerfile: Dockerfile
+    volumes:
+      - ./config/currency:/app/config
     working_dir: /app
   migrator:
-    build:
-      target: dev_migrator
-      context: api
-      dockerfile: Dockerfile.grpc
     volumes:
       - ./api:/app
-      - ./misc:/misc
       - ./config/api/:/app/envs
     working_dir: /app
   auth:
@@ -32,7 +31,6 @@ services:
     volumes:
       - ./auth:/app
       - ./config/auth/:/app/envs
-      - ./misc:/misc
     working_dir: /app
   gateway:
     build:
@@ -42,7 +40,6 @@ services:
     volumes:
       - ./api-gateway:/app
       - ./config/gateway/:/app/envs
-      - ./misc:/misc
     working_dir: /app
   ui:
     build:
@@ -51,6 +48,6 @@ services:
     volumes:
       - ./ui:/app
     ports:
-      - "4201:80"
+      - "4201:3001"
 volumes:
   data: {}
