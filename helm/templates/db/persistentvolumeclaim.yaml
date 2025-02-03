@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "sb.fullname" . }}-data
+  name: {{ include "sb.fullname" . }}-pvc
   labels:
     {{- include "sb.labels" . | nindent 4 }}
 spec:

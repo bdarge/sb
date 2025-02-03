@@ -26,7 +26,39 @@ helm secrets upgrade sb helm/ -f helm/values.yaml -f helm/helm_vars/secrets.yaml
 ssh binyam@192.168.1.10 /usr/local/bin/gpg --export-secret-key bdarge | /usr/local/bin/gpg --import
 ```
 
+## Install NFS CSI
+```
+helm install csi-driver-nfs csi-driver-nfs/csi-driver-nfs --namespace kube-system --set externalSnapshotter.enabled=true --set controller.runOnControlPlane=true --set controller.livenessProbe.healthPort=39653
+```
 
+```
+kubectl apply -f storageclass-nfs.yaml
+```
 
+## Test NFS mounting
+```
+sudo mount -t nfs  node7.lan.odainfo.com:/mnt/k8s-data/nfs4 /home/bdarge/temp
+```
 
+## Test
+```
+vault write auth/kubernetes/login role=demo jwt=...
+```
 
+```
+export VAULT_SKIP_VERIFY=false
+```
+
+```
+kubectl exec -it nginx-deployment-66bb4f8497-4vznw -- cat /var/run/secrets/kubernetes.io/serviceaccount/token
+```
+
+## Using vault
+
+```console
+helm install sb helm/ --kube-context k8s-app@app -f helm/values.yaml --namespace sb-app --create-namespace
+```
+
+```console
+helm uninstall sb --namespace sb-app --kube-context k8s-app@app
+```

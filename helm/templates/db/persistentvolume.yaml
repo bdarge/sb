@@ -9,14 +9,9 @@ spec:
     storage: 10Gi
   accessModes:
     - ReadWriteOnce
-  iscsi:
-    # a different iscsi storage server at nfs.my.home configured
-    targetPortal: 192.168.50.33:3260
-    iqn: iqn.2021-06.my.home:lun1
-    lun: 1
-    fsType: ext4
-    readOnly: false
-    chapAuthDiscovery: false
-    chapAuthSession: true
-    secretRef:
-      name: {{ include "sb.name" . }}-chap-secret
+  csi:
+    driver: {{ $.Values.db.nfs.nfsProvisioner }}
+    volumeHandle: "{{ $.Values.db.nfs.volumeHandlePrefix }}.{{ include "sb.fullname" . }}"
+    volumeAttributes:
+      server: {{ $.Values.db.nfs.server }}
+      share: "{{ $.Values.db.nfs.share }}/{{ include "sb.fullname" . }}"

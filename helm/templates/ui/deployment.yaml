@@ -6,9 +6,9 @@ metadata:
     {{- include "sb.labels" . | nindent 4 }}
     app: {{ template "sb.name" . }}-ui
 spec:
-{{- if not .Values.ui.autoscaling.enabled }}
+  {{- if not .Values.ui.autoscaling.enabled }}
   replicas: {{ .Values.ui.replicaCount }}
-{{- end }}
+  {{- end }}
   selector:
     matchLabels:
       app: {{ template "sb.name" . }}-ui
@@ -18,7 +18,7 @@ spec:
         {{- include "sb.labels" . | nindent 8 }}
         app: {{ template "sb.name" . }}-ui
     spec:
-      {{- with .Values.imagePullSecrets.ghcr }}
+      {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
