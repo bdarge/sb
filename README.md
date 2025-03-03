@@ -1,40 +1,33 @@
 # sb
 
 
-## How to build
+### docker-compose
 
-- git submodule update --init
+Run `Makefile` to test the app in docker locally.
 
-- `./build.sh -p` or for production `./build.sh`
+### K8s
 
-## Database
-generate migration script
-```console
-migrate create -ext sql -dir db/migrations add_account_table
-```
+1. Setup Vault Secret Operator (vso)
 
-## Install apps
-
-### login to vault
 - Export vault address, and skip cert verify values:
 `export VAULT_SKIP_VERIFY=true`
-`export VAULT_ADDR=https://192.168.50.76:8200` 
+`export VAULT_ADDR=https://192.168.50.76:8200`
+
 - Then login using vault token:
 `vault login -tls-skip-verify`
 
-### Setup vso
-
+- run vso setup
 ```console
 ./setup_vso.sh
 ```
 
-### Install app using helm
+2. Install to k8s using helm
 
 ```console
-helm install sb helm/ --kube-context k8s-app@app -f helm/values.yaml --namespace sb-app --create-namespace
+helm install sb helm/ [--kube-context k8s-app@app] -f helm/values.yaml --namespace sb-app --create-namespace
 ```
 
-### Rotate db credential
+3. Rotate db credential
 
 ```console
 ./rotate_rp.sh

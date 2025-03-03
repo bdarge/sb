@@ -64,7 +64,7 @@ db:
   image:
     repository: mysql
     pullPolicy: IfNotPresent
-    tag: "9.1.0-oracle"
+    tag: "9.2.0-oracle"
   service:
     type: LoadBalancer
     port: 3308
