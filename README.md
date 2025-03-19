@@ -21,14 +21,19 @@ Run `Makefile` to test the app in docker locally.
 ./setup_vso.sh
 ```
 
-2. Install to k8s using helm
+2. Install on k8s using helm
 
 ```console
-helm install sb helm/ [--kube-context k8s-app@app] -f helm/values.yaml --namespace sb-app --create-namespace
+helm install sb helm/ --kube-context k8s-app@app -f helm/values.yaml --set "app.email=[email@example.com]" --namespace sb-app --create-namespace
+```
+To uninstall:
+```console
+helm uninstall sb --namespace sb-app --kube-context k8s-app@app
 ```
 
-3. Rotate db credential
+3. Rotate db credential through VSO
 
 ```console
 ./rotate_rp.sh
 ```
+
