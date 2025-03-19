@@ -49,14 +49,10 @@ vault write auth/kubernetes/login role=demo jwt=...
 export VAULT_SKIP_VERIFY=false
 ```
 
-```
-kubectl exec -it nginx-deployment-66bb4f8497-4vznw -- cat /var/run/secrets/kubernetes.io/serviceaccount/token
-```
-
-## Using vault
+## Install/Uninstall on k8s using helm
 
 ```console
-helm install sb helm/ --kube-context k8s-app@app -f helm/values.yaml --namespace sb-app --create-namespace
+helm install sb helm/ [--kube-context k8s-app@app] -f helm/values.yaml --namespace sb-app --create-namespace
 ```
 
 ```console

@@ -13,20 +13,21 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name: "sb"
 
+app:
+  email: ""
+  domain: 
+    - sb.odainfo.com
+
 ingress:
   enabled: true
   annotations:
-#     kubernetes.io/tls-acme: "true"
     nginx.ingress.kubernetes.io/rewrite-target: /$2
   hosts:
-    - host: sb.lan
-      paths:
-        - "/"
-        - "/api"
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
+    - host: sb.odainfo.com
+  tls:
+    - secretName: sb-ca-tsl
+      hosts:
+        - sb.odainfo.com
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -112,7 +113,7 @@ apiGateway:
   securityContext: {}
   replicaCount: 1
   service:
-    type: LoadBalancer
+    type: ClusterIP
     port: 3000
     targetPort: 3000
   baseUrl: "http://sb.lan/api/v1"
@@ -129,9 +130,9 @@ ui:
   image:
     repository: "ghcr.io/bdarge/sb-ui"
     pullPolicy: Always
-    tag: 0.0.2-alpha.1
+    tag: 0.0.2-alpha.3
   service:
-    type: LoadBalancer
+    type: ClusterIP
     port: 80
     targetPort: 80
 
@@ -154,3 +155,4 @@ git:
 
 imagePullSecrets: 
   - name: ghcr
+
