@@ -50,4 +50,4 @@ services:
     ports:
       - "4201:3001"
 volumes:
-  data: {}
+  data:
