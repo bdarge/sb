@@ -45,6 +45,12 @@ path "$secrets/data/$app_name/db-root" {
 path "$secrets/data/$app_name/jwt-key" {
    capabilities = ["read"]
 }
+path "$secrets/data/$app_name/git-token" {
+   capabilities = ["read"]
+}
+path "kvv2/data/$app_policy/cloudflare_api_token" {
+   capabilities = ["read"]
+}
 path "$secrets/data/$app_name/ghcr" {
    capabilities = ["read", "list", "subscribe"]
    subscribe_event_types = ["kv*"]
