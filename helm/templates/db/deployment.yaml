@@ -22,23 +22,15 @@ spec:
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.db.image.repository }}:{{ .Values.db.image.tag | default .Chart.AppVersion }}"
-          args: ["--default-authentication-plugin=mysql_native_password"]
           imagePullPolicy: {{ .Values.db.image.pullPolicy }}
           env:
             - name: MYSQL_DATABASE
-              value: {{ .Values.db.mainDb.database}}
-            - name: MYSQL_USER
-              value: {{ .Values.db.mainDb.user}}
-            - name: MYSQL_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ include "sb.name" . }}-secret
-                  key: MYSQL_USER_PWD
+              value: {{ .Values.db.db_name }}
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "sb.name" . }}-secret
-                  key: MYSQL_ROOT_PWD
+                  name: "db-root-secret"
+                  key: root_password
           ports:
             - name: http
               containerPort: 3306
@@ -71,4 +63,4 @@ spec:
       volumes:
         - name: data
           persistentVolumeClaim:
-            claimName: {{ include "sb.fullname" . }}-data
+            claimName: {{ include "sb.fullname" . }}-pvc

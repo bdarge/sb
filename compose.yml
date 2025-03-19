@@ -1,11 +1,7 @@
 services:
   db:
-    image: arm64v8/mysql
+    image: mysql:9.2.0-oracle
     platform: linux/arm64
-    cap_add:
-      - SYS_NICE
-    # use the old authentication protocol, so I can use the popular mysql nodejs package
-    command: --default-authentication-plugin=caching_sha2_password
     environment:
       MYSQL_ROOT_PASSWORD: 'password'
       MYSQL_DATABASE: 'sb'

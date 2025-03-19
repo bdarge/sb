@@ -1,22 +1,20 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: batch/v1
+kind: Job
 metadata:
-  name: {{ include "sb.fullname" . }}-api
+  name: "{{ .Release.Name }}"
   labels:
-    {{- include "sb.labels" . | nindent 4 }}
-    app: {{ template "sb.name" . }}-api
+    app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
+    app.kubernetes.io/instance: {{ .Release.Name | quote }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    helm.sh/chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+  annotations:
+    # This is what defines this resource as a hook. Without this line, the
+    # job is considered part of the release.
+    "helm.sh/hook": post-install
+    "helm.sh/hook-weight": "-5"
+    "helm.sh/hook-delete-policy": hook-succeeded
 spec:
-{{- if not .Values.api.autoscaling.enabled }}
-  replicas: {{ .Values.api.replicaCount }}
-{{- end }}
-  selector:
-    matchLabels:
-      app: {{ template "sb.name" . }}-api
   template:
-    metadata:
-      labels:
-        {{- include "sb.labels" . | nindent 8 }}
-        app: {{ template "sb.name" . }}-api
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -33,12 +31,24 @@ spec:
             - name: SVC_NAME
               value: {{ include "sb.fullname" . }}-db-svc
       containers:
-        - name: {{ .Chart.Name }}
-          securityContext:
-            {{- toYaml .Values.api.securityContext | nindent 12 }}
+        - name: post-install-job
           image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.api.image.pullPolicy }}
+          command: ["/bin/bash"]
+          args:
+            - "-c"
+            - >-
+              git clone --single-branch --branch {{ .Values.migration.branch }} {{ .Values.migration.repoUrl }} &&
+                /app/api
           env:
+            - name: ENV
+              value: "prod"
+            - name: MIGRATOR
+              value: "true"
+            - name: GIT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: "sb-git-token"
+                  key: token
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -49,33 +59,16 @@ spec:
                 secretKeyRef:
                   name: "sb-db"
                   key: username
-            - name: ENV
-              value: "prod"
-            - name: GIN_MODE
-              value: release
             - name: DSN
               value: "$(DB_USERNAME):$(DB_PASSWORD)@tcp({{ include "sb.fullname" . }}-db-svc:{{ .Values.db.service.port }})/{{ .Values.db.db_name }}?parseTime=true"
-          ports:
-            - name: http
-              containerPort: {{ .Values.api.service.port }}
-              protocol: TCP
           volumeMounts:
             - name: config
               mountPath: "/app/envs"
-          livenessProbe:
-            grpc:
-              port: {{ .Values.api.service.port }}
-            initialDelaySeconds: 10
-          readinessProbe:
-            grpc:
-              port: {{ .Values.api.service.port }}
-            initialDelaySeconds: 2
-          resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+      restartPolicy: {{ .Values.migration.job.restartPolicy }}
       volumes:
         - name: config
           configMap:
-            name: {{ include "sb.fullname" . }}-api-config
+            name: {{ include "sb.fullname" . }}-post-install-config
             items:
             - key: "prod.env"
               path: "prod.env"
