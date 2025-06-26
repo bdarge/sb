@@ -3,18 +3,18 @@ default:
 	docker compose build
 
 up: default
-	@echo "start locally"
-	docker compose up -d
+	@echo "start locally with watch"
+	docker compose up --watch
 
 up_prod: default
 	@echo "start locally but with remote images"
 	docker compose -f compose.yml -f compose.prod.yml up -d
 
 logs:
-	docker-compose logs -f
+	docker compose logs -f
 
 down:
-	docker-compose down
+	docker compose down
 
 clean: down
 	@echo "cleaning up"

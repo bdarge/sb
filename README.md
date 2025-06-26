@@ -3,7 +3,13 @@
 
 ### docker-compose
 
-Run `Makefile` to test the app in docker locally.
+Use the `Makefile` to test the app in docker locally on watch mode. Add `.env` which contains the currency API token:
+
+```
+EXC_TOKEN={value goes here}
+```
+
+Then do `make up` to run docker compose in dev/watch mode
 
 ### K8s
 
