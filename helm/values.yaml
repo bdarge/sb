@@ -136,6 +136,19 @@ ui:
     port: 80
     targetPort: 80
 
+currency:
+  replicaCount: 1
+  autoscaling:
+    enabled: false
+  image:
+    repository: "ghcr.io/bdarge/sb-currency"
+    pullPolicy: Always
+    tag: 0.0.1
+  service:
+    type: ClusterIP
+    port: 9002
+    targetPort: 9002
+
 migration:
   job:
     restartPolicy: Never
