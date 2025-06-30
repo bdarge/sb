@@ -130,7 +130,7 @@ ui:
   image:
     repository: "ghcr.io/bdarge/sb-ui"
     pullPolicy: Always
-    tag: 0.0.2-alpha.3
+    tag: 0.1.0
   service:
     type: ClusterIP
     port: 80
@@ -143,7 +143,7 @@ currency:
   image:
     repository: "ghcr.io/bdarge/sb-currency"
     pullPolicy: Always
-    tag: 0.0.1
+    tag: 0.1.0
   service:
     type: ClusterIP
     port: 9002
