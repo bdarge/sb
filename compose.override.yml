@@ -22,6 +22,7 @@ services:
     working_dir: /app
     environment:
       EXC_TOKEN: ${EXC_TOKEN}
+      ENV: dev
 
   migrator:
     volumes:

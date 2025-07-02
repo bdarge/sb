@@ -7,5 +7,6 @@ metadata:
 data:
   prod.env: |
     RATE_URL=https://v6.exchangerate-api.com/v6
-    PORT="{{ .Values.apiGateway.service.targetPort }}"
+    PORT="{{ .Values.currency.service.targetPort }}"
     TOKEN_NAME=EXC_TOKEN
+
