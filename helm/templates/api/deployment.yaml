@@ -65,11 +65,12 @@ spec:
           livenessProbe:
             grpc:
               port: {{ .Values.api.service.port }}
-            initialDelaySeconds: 10
+            initialDelaySeconds: 15
+            periodSeconds: 10
           readinessProbe:
             grpc:
               port: {{ .Values.api.service.port }}
-            initialDelaySeconds: 2
+            initialDelaySeconds: 15
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       volumes:
