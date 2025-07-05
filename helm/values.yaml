@@ -143,7 +143,7 @@ currency:
   image:
     repository: "ghcr.io/bdarge/sb-currency"
     pullPolicy: Always
-    tag: 0.1.1
+    tag: 0.1.2
   service:
     type: ClusterIP
     port: 9002
