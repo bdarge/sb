@@ -5,11 +5,11 @@ metadata:
   labels:
     {{- include "sb.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.apiGateway.service.type }}
+  type: {{ .Values.currency.service.type }}
   ports:
-    - port: {{ .Values.apiGateway.service.port }}
+    - port: {{ .Values.currency.service.port }}
       protocol: TCP
       name: http
-      targetPort: {{ .Values.apiGateway.service.targetPort }}
+      targetPort: {{ .Values.currency.service.targetPort }}
   selector:
     app: {{ template "sb.name" . }}-currency
