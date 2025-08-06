@@ -121,7 +121,7 @@ apiGateway:
   image:
     repository: "ghcr.io/bdarge/sb-api-gateway"
     pullPolicy: Always
-    tag: 0.0.1-alpha.3
+    tag: 0.1.0
 
 ui:
   replicaCount: 1
@@ -130,11 +130,24 @@ ui:
   image:
     repository: "ghcr.io/bdarge/sb-ui"
     pullPolicy: Always
-    tag: 0.0.2-alpha.3
+    tag: 0.2.0
   service:
     type: ClusterIP
     port: 80
     targetPort: 80
+
+currency:
+  replicaCount: 1
+  autoscaling:
+    enabled: false
+  image:
+    repository: "ghcr.io/bdarge/sb-currency"
+    pullPolicy: Always
+    tag: 0.1.2
+  service:
+    type: ClusterIP
+    port: 9002
+    targetPort: 9002
 
 migration:
   job:

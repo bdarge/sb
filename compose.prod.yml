@@ -35,10 +35,7 @@ services:
     image: "ghcr.io/bdarge/sb-ui:0.0.2-alpha"
     environment:
       ENVIRONMENT: prod
-#    volumes:
-#      - ${PWD}/ui/ssl/:/etc/nginx/certs
-#      - ${PWD}/ui/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-#    ports:
-#      - "4201:80"
+    ports:
+      - "4202:80"
 volumes:
   data: {}

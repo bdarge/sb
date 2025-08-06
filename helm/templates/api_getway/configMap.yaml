@@ -10,3 +10,6 @@ data:
     AUTH_SVC_URL="{{ include "sb.fullname" . }}-auth-svc:{{ .Values.auth.service.targetPort }}"
     API_SVC_URL="{{ include "sb.fullname" . }}-api-svc:{{ .Values.api.service.targetPort }}"
     BASE_URL={{ .Values.apiGateway.baseUrl | quote }}
+    JWT_REFRESH_TOKEN_EXP_ON=28800
+    UI_DOMAIN=https://sb.odainfo.com
+    CURRENCY_SVC_URL="{{ include "sb.fullname" . }}-currency-svc:{{ .Values.currency.service.targetPort }}"

@@ -2,6 +2,7 @@ services:
   db:
     volumes:
       - data:/var/lib/mysql
+  
   api:
     build:
       target: dev
@@ -11,6 +12,7 @@ services:
       - ./api:/app
       - ./config/api:/app/envs
     working_dir: /app
+  
   currency:
     build:
       context: currency
@@ -18,11 +20,16 @@ services:
     volumes:
       - ./config/currency:/app/config
     working_dir: /app
+    environment:
+      EXC_TOKEN: ${EXC_TOKEN}
+      ENV: dev
+
   migrator:
     volumes:
       - ./api:/app
       - ./config/api/:/app/envs
     working_dir: /app
+  
   auth:
     build:
       target: dev
@@ -32,6 +39,7 @@ services:
       - ./auth:/app
       - ./config/auth/:/app/envs
     working_dir: /app
+  
   gateway:
     build:
       target: dev
@@ -41,13 +49,19 @@ services:
       - ./api-gateway:/app
       - ./config/gateway/:/app/envs
     working_dir: /app
+  
   ui:
     build:
       context: ui
       target: dev
-    volumes:
-      - ./ui:/app
     ports:
-      - "4201:3001"
+      - "4202:4202"
+    develop:
+      watch:
+        - action: sync
+          path: ./ui
+          target: /app
+        - action: rebuild
+          path: package.json
 volumes:
   data:

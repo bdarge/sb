@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "sb.fullname" . }}-currency
+  labels:
+    {{- include "sb.labels" . | nindent 4 }}
+    app: {{ template "sb.name" . }}-currency
+spec:
+{{- if not .Values.currency.autoscaling.enabled }}
+  replicas: {{ .Values.currency.replicaCount }}
+{{- end }}
+  selector:
+    matchLabels:
+      app: {{ template "sb.name" . }}-currency
+  template:
+    metadata:
+      labels:
+        {{- include "sb.labels" . | nindent 8 }}
+        app: {{ template "sb.name" . }}-currency
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "sb.serviceAccountName" . }}
+      dnsPolicy: {{ .Values.dnsPolicy }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.currency.image.repository }}:{{ .Values.currency.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.currency.image.pullPolicy }}
+          env:
+            - name: EXC_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: "sb-currency"
+                  key: exc-token
+            - name: ENV
+              value: prod
+          ports:
+            - name: http
+              containerPort: {{ .Values.currency.service.port }}
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: "/app/config"
+          livenessProbe:
+            grpc:
+              port: {{ .Values.currency.service.port }}
+            initialDelaySeconds: 10
+          readinessProbe:
+            grpc:
+              port: {{ .Values.currency.service.port }}
+            initialDelaySeconds: 2
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ include "sb.fullname" . }}-currency-config
+            items:
+            - key: "prod.env"
+              path: "prod.env"
+      dnsConfig:
+        options:
+          - name: ndots
+            value: {{ .Values.dnsConfig.ndots | quote }}

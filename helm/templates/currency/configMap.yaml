@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "sb.fullname" . }}-currency-config
+  annotations:
+    "kubernetes.io/service-account.name": {{ include "sb.serviceAccountName" . }}
+data:
+  prod.env: |
+    RATE_URL=https://v6.exchangerate-api.com/v6
+    PORT="{{ .Values.currency.service.targetPort }}"
+    TOKEN_NAME=EXC_TOKEN
+
