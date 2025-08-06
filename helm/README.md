@@ -56,5 +56,5 @@ helm install sb helm/ [--kube-context k8s-app@app] -f helm/values.yaml --namespa
 ```
 
 ```console
-helm uninstall sb --namespace sb-app --kube-context k8s-app@app
+helm uninstall sb --namespace sb-app [--kube-context k8s-app@app]
 ```
