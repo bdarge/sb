@@ -90,7 +90,7 @@ api:
   image:
     repository: "ghcr.io/bdarge/sb-api"
     pullPolicy: IfNotPresent
-    tag: 0.0.1-alpha.4
+    tag: 0.1.0
 
 auth:
   autoscaling:
@@ -105,7 +105,7 @@ auth:
   image:
     repository: "ghcr.io/bdarge/sb-auth"
     pullPolicy: Always
-    tag: 0.0.1-alpha.7
+    tag: 0.1.0
 
 apiGateway:
   autoscaling:
@@ -121,7 +121,7 @@ apiGateway:
   image:
     repository: "ghcr.io/bdarge/sb-api-gateway"
     pullPolicy: Always
-    tag: 0.1.0
+    tag: 0.1.1
 
 ui:
   replicaCount: 1
@@ -130,7 +130,7 @@ ui:
   image:
     repository: "ghcr.io/bdarge/sb-ui"
     pullPolicy: Always
-    tag: 0.2.0
+    tag: 0.2.1
   service:
     type: ClusterIP
     port: 80
