@@ -55,16 +55,8 @@ spec:
               value: release
             - name: DSN
               value: "$(DB_USERNAME):$(DB_PASSWORD)@tcp({{ include "sb.fullname" . }}-db-svc:{{ .Values.db.service.port }})/{{ .Values.db.db_name }}?parseTime=true"
-            - name: JWT_TOKEN_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: "sb-jwt-key"
-                  key: jwt-key
-            - name: JWT_REFRESH_TOKEN_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: "sb-jwt-key"
-                  key: jwt-key
+            - name: JWT_PRIVATE_KEY_PATH
+              value: "/run/secrets/id_ecdsa"
           ports:
             - name: http
               containerPort: {{ .Values.auth.service.port }}
@@ -72,6 +64,8 @@ spec:
           volumeMounts:
             - name: config
               mountPath: "/app/envs"
+            - name: signingKey
+              mountPath: "/run/secrets"
           livenessProbe:
             grpc:
               port: {{ .Values.auth.service.port }}
@@ -89,6 +83,14 @@ spec:
             items:
               - key: "prod.env"
                 path: "prod.env"
+        - name: signingKey
+          secret:
+            secretName: sb-jwt-key
+            items:
+            - key: jwt-key
+              path: id_ecdsa
+            - key: jwt-public-key
+              path: id_ecdsa.pub
       dnsConfig:
         options:
           - name: ndots

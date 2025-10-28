@@ -40,6 +40,9 @@ services:
       - db
     ports:
       - "50051:50051"
+    secrets:
+      - id_ecdsa
+      - id_ecdsa.pub
   gateway:
     hostname: gateway
     restart: unless-stopped
@@ -54,4 +57,8 @@ services:
     depends_on:
       - db
     image: sb-ui
-
+secrets:
+  id_ecdsa:
+    file: ./priv_key.pem
+  id_ecdsa.pub:
+    file: ./pub_key.pem
