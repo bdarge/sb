@@ -31,6 +31,7 @@ services:
       - db
     environment:
       MIGRATOR: 'true'
+    restart: no
   auth:
     hostname: auth
     restart: unless-stopped
