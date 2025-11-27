@@ -1,10 +1,13 @@
 #!/bin/sh
 
+use -eu
+
 app_ns=sb-app
 db_secret=sb-db
 db_roles=sb-mysql-role
 db_policy=sb-auth-policy-db
 config_name=profile
+context=bd@app
 
 # setup db secret
 db_secret=sb-db
@@ -26,11 +29,11 @@ EOF
 fi
 
 # get db port from k8s service
-port=$(kubectl get svc -n sb-app --context k8s-app@app sb-db-svc -o=jsonpath='{.spec.ports[0].port}')
+port=$(kubectl get svc -n sb-app --context $context sb-db-svc -o=jsonpath='{.spec.ports[0].port}')
 # read db_url from k8s service
-db_url=$(kubectl get svc -n $app_ns --context k8s-app@app sb-db-svc -o=jsonpath='{.status.loadBalancer.ingress[0].ip}')
+db_url=$(kubectl get svc -n $app_ns --context $context sb-db-svc -o=jsonpath='{.status.loadBalancer.ingress[0].ip}')
 # read db's root cred from k8s secrets
-password=$(kubectl get secrets -n $app_ns --context k8s-app@app db-root-secret -o=jsonpath='{.data.root_password}' | base64 -d)
+password=$(kubectl get secrets -n $app_ns --context $context db-root-secret -o=jsonpath='{.data.root_password}' | base64 -d)
 username="root"
 
 vault write $db_secret/config/$config_name \
