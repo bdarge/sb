@@ -1,7 +1,6 @@
 # sb
 
-
-### docker-compose
+## docker-compose
 
 Use the `Makefile` to test the app in docker locally on watch mode. Add `.env` which contains the currency API token:
 
@@ -11,35 +10,38 @@ EXC_TOKEN={value goes here}
 
 Then do `make up` to run docker compose in dev/watch mode
 
-### K8s
+## k8s
 
-1. Setup Vault Secret Operator (vso)
+1. Install NFS
 
-- Export vault address, and skip cert verify values:
-`export VAULT_SKIP_VERIFY=true`
-`export VAULT_ADDR=https://192.168.50.76:8200`
-
-- Then login using vault token:
-`vault login -tls-skip-verify`
-
-- run vso setup
 ```console
-./setup_vso.sh
+helm install --kube-context k8s-app@app csi-driver-nfs2 csi-driver-nfs/csi-driver-nfs --namespace kube-system --set driver.name="nfs2.csi.k8s.io" --set controller.name="csi-nfs2-controller" --set rbac.name=nfs2 --set serviceAccount.controller=csi-nfs2-controller-sa --set serviceAccount.node=csi-nfs2-node-sa --set node.name=csi-nfs2-node --set node.livenessProbe.healthPort=39653
 ```
 
-2. Install on k8s using helm
+
+2. Setup Vault Secret Operator (vso)
+
+See, [here](vault/README.md) on how to install Vault Secret Operator
+
+
+Add app k8s cert in vault k8s authentication method
+```console
+kubectl config view --raw --minify --flatten \
+       -o jsonpath='{.clusters[].cluster.certificate-authority-data}' --context [k8s-app@app] | base64 -d
+```
+
+3. Install cert manager
+
+```
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.19.1/cert-manager.yaml
+```
+
+4. Install on k8s using helm
 
 ```console
-helm install sb helm/ --kube-context k8s-app@app -f helm/values.yaml --set "app.email=[email@example.com]" --namespace sb-app --create-namespace
+helm install sb helm/ -f helm/values.yaml --set "app.email=[email@example.com]" --namespace sb-app --create-namespace [--kube-context k8s-app@app]
 ```
 To uninstall:
 ```console
-helm uninstall sb --namespace sb-app --kube-context k8s-app@app
+helm uninstall sb --namespace sb-app [--kube-context k8s-app@app]
 ```
-
-3. Rotate db credential through VSO
-
-```console
-./rotate_rp.sh
-```
-
