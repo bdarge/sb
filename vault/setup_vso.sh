@@ -5,7 +5,7 @@ set -e
 # Run 'vault login' before running this script
 KUBERNETES_CLUSTER=https://192.168.50.30
 KUBERNETES_PORT_443_TCP_ADDR=https://192.168.50.30:6443
-k8s_context=k8s-app@app
+k8s_context=bd@app
 app_ns=sb-app
 app_sa=sb-sa
 app_role=sb-role
@@ -98,10 +98,10 @@ vault write auth/$auth/role/$operator_role \
 
 
 # setup vso
-kubectl apply -f ./vault/vault-auth.yaml --context $k8s_context
+kubectl apply -f ./vault-auth.yaml --context $k8s_context
 
 # create static secrets
-kubectl apply -f ./vault/static-secret-vso.yaml --context $k8s_context
+kubectl apply -f ./static-secret-vso.yaml --context $k8s_context
 
 # create dynamic secrets
-kubectl apply -f ./vault/dynamic-secret-vso.yaml --context $k8s_context
+kubectl apply -f ./dynamic-secret-vso.yaml --context $k8s_context
