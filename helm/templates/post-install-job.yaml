@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: "{{ .Release.Name }}"
+  name: "{{ .Release.Name }}-app"
   labels:
     app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
     app.kubernetes.io/instance: {{ .Release.Name | quote }}
@@ -44,26 +44,18 @@ spec:
               value: "prod"
             - name: MIGRATOR
               value: "true"
+            - name: CRED_PATH
+              value: /run/secrets/db/cred.env
             - name: GIT_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: "sb-git-token"
                   key: token
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: "sb-db"
-                  key: password
-            - name: DB_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: "sb-db"
-                  key: username
-            - name: DSN
-              value: "$(DB_USERNAME):$(DB_PASSWORD)@tcp({{ include "sb.fullname" . }}-db-svc:{{ .Values.db.service.port }})/{{ .Values.db.db_name }}?parseTime=true"
           volumeMounts:
             - name: config
               mountPath: "/app/envs"
+            - name: db-connection
+              mountPath: "/run/secrets/db"
       restartPolicy: {{ .Values.migration.job.restartPolicy }}
       volumes:
         - name: config
@@ -72,6 +64,13 @@ spec:
             items:
             - key: "prod.env"
               path: "prod.env"
+        - name: db-connection
+          secret:
+            secretName: sb-db
+            items:
+            - key: dns
+              path: cred.env
+            defaultMode: 0400
       dnsConfig:
         options:
           - name: ndots

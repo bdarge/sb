@@ -12,5 +12,4 @@ data:
     JWT_REFRESH_TOKEN_EXP_ON=24
     JWT_TOKEN_ISSUER=sb-auth
     JWT_TOKEN_EXP_ON=15
-    DSN=""
-
+    JWT_PRIVATE_KEY_PATH=/run/secrets/sb/id_ecdsa

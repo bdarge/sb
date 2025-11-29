@@ -39,22 +39,12 @@ spec:
           image: "{{ .Values.api.image.repository }}:{{ .Values.api.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.api.image.pullPolicy }}
           env:
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: "sb-db"
-                  key: password
-            - name: DB_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: "sb-db"
-                  key: username
             - name: ENV
               value: "prod"
             - name: GIN_MODE
               value: release
-            - name: DSN
-              value: "$(DB_USERNAME):$(DB_PASSWORD)@tcp({{ include "sb.fullname" . }}-db-svc:{{ .Values.db.service.port }})/{{ .Values.db.db_name }}?parseTime=true"
+            - name: CRED_PATH
+              value: /run/secrets/db/cred.env
           ports:
             - name: http
               containerPort: {{ .Values.api.service.port }}
@@ -62,6 +52,8 @@ spec:
           volumeMounts:
             - name: config
               mountPath: "/app/envs"
+            - name: db-connection
+              mountPath: "/run/secrets/db"
           livenessProbe:
             grpc:
               port: {{ .Values.api.service.port }}
@@ -80,6 +72,13 @@ spec:
             items:
             - key: "prod.env"
               path: "prod.env"
+        - name: db-connection
+          secret:
+            secretName: sb-db
+            items:
+            - key: dns
+              path: cred.env
+            defaultMode: 0400
       dnsConfig:
         options:
           - name: ndots

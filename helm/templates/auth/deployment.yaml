@@ -39,24 +39,12 @@ spec:
           image: "{{ .Values.auth.image.repository }}:{{ .Values.auth.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.auth.image.pullPolicy }}
           env:
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: sb-db
-                  key: password
-            - name: DB_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: sb-db
-                  key: username
             - name: ENV
               value: "prod"
             - name: GIN_MODE
               value: release
-            - name: DSN
-              value: "$(DB_USERNAME):$(DB_PASSWORD)@tcp({{ include "sb.fullname" . }}-db-svc:{{ .Values.db.service.port }})/{{ .Values.db.db_name }}?parseTime=true"
-            - name: JWT_PRIVATE_KEY_PATH
-              value: "/run/secrets/id_ecdsa"
+            - name: CRED_PATH
+              value: /run/secrets/db/cred.env
           ports:
             - name: http
               containerPort: {{ .Values.auth.service.port }}
@@ -64,8 +52,10 @@ spec:
           volumeMounts:
             - name: config
               mountPath: "/app/envs"
-            - name: signingKey
-              mountPath: "/run/secrets"
+            - name: signing-key
+              mountPath: "/run/secrets/sb"
+            - name: db-connection
+              mountPath: "/run/secrets/db"
           livenessProbe:
             grpc:
               port: {{ .Values.auth.service.port }}
@@ -83,7 +73,7 @@ spec:
             items:
               - key: "prod.env"
                 path: "prod.env"
-        - name: signingKey
+        - name: signing-key
           secret:
             secretName: sb-jwt-key
             items:
@@ -91,6 +81,14 @@ spec:
               path: id_ecdsa
             - key: jwt-public-key
               path: id_ecdsa.pub
+            defaultMode: 0400
+        - name: db-connection
+          secret:
+            secretName: sb-db
+            items:
+            - key: dns
+              path: cred.env
+            defaultMode: 0400
       dnsConfig:
         options:
           - name: ndots
