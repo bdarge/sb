@@ -3,36 +3,36 @@ services:
     volumes:
       - data:/var/lib/mysql
   api:
-    image: "ghcr.io/bdarge/sb-api:0.0.3-alpha"
+    image: "ghcr.io/bdarge/sb-api:0.2.0"
     volumes:
-      - ./config/api/:/app/envs
+      - ./api/envs:/app/envs
       - ./scripts:/app/scripts
     command: >
       sh -c "/app/scripts/wait-for-it.sh 127.0.0.1:3308 -- /app/api"
   migrator:
-    image: "ghcr.io/bdarge/sb-api:0.0.3-alpha"
+    image: "ghcr.io/bdarge/sb-api:0.2.0"
     volumes:
       - ./api/db:/app/db
-      - ./config/api/:/app/envs
+      - ./api/envs:/app/envs
       - ./scripts:/app/scripts
   gateway:
-    image: "ghcr.io/bdarge/sb-api-gateway:0.0.3-alpha"
+    image: "ghcr.io/bdarge/sb-api-gateway:0.1.2"
     volumes:
-      - ./config/gateway/:/app/envs
+      - ./gateway/envs:/app/envs
       - ./scripts:/app/scripts
     environment:
       GIN_MODE: release
     command: >
       sh -c "/app/scripts/wait-for-it.sh 127.0.0.1:3308 -- /app/gateway"
   auth:
-    image: "ghcr.io/bdarge/sb-auth:0.0.3-alpha"
+    image: "ghcr.io/bdarge/sb-auth:1.1.0"
     volumes:
-      - ./config/auth/:/app/envs
+      - ./auth/envs:/app/envs
       - ./scripts:/app/scripts
     command: >
       sh -c "/app/scripts/wait-for-it.sh 127.0.0.1:3308 -- /app/auth"
   ui:
-    image: "ghcr.io/bdarge/sb-ui:0.0.2-alpha"
+    image: "ghcr.io/bdarge/sb-ui:0.3.0"
     environment:
       ENVIRONMENT: prod
     ports:

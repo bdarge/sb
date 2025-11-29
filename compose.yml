@@ -18,6 +18,10 @@ services:
       - db
     ports:
       - "50052:50052"
+    environment:
+      - CRED_PATH=/run/secrets/cred.env
+    secrets:
+      - cred.env
   currency:
     hostname: currency
     restart: unless-stopped
@@ -30,8 +34,11 @@ services:
     depends_on:
       - db
     environment:
-      MIGRATOR: 'true'
+      - MIGRATOR='true'
+      - CRED_PATH=/run/secrets/cred.env
     restart: no
+    secrets:
+      - cred.env
   auth:
     hostname: auth
     restart: unless-stopped
@@ -41,9 +48,12 @@ services:
       - db
     ports:
       - "50051:50051"
+    environment:
+      - CRED_PATH=/run/secrets/cred.env
     secrets:
       - id_ecdsa
       - id_ecdsa.pub
+      - cred.env
   gateway:
     hostname: gateway
     restart: unless-stopped
@@ -60,6 +70,8 @@ services:
     image: sb-ui
 secrets:
   id_ecdsa:
-    file: ./priv_key.pem
+    file: ./secrets/priv_key.pem
   id_ecdsa.pub:
-    file: ./pub_key.pem
+    file: ./secrets/pub_key.pem
+  cred.env:
+    file: ./secrets/cred.env

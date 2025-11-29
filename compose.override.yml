@@ -10,7 +10,6 @@ services:
       dockerfile: Dockerfile.grpc
     volumes:
       - ./api:/app
-      - ./config/api:/app/envs
     working_dir: /app
   
   currency:
@@ -18,7 +17,7 @@ services:
       context: currency
       dockerfile: Dockerfile
     volumes:
-      - ./config/currency:/app/config
+      - ./currency/config:/app/config
     working_dir: /app
     environment:
       EXC_TOKEN: ${EXC_TOKEN}
@@ -37,7 +36,6 @@ services:
       dockerfile: Dockerfile.grpc
     volumes:
       - ./auth:/app
-      - ./config/auth/:/app/envs
     working_dir: /app
   
   gateway:
@@ -47,7 +45,6 @@ services:
       dockerfile: Dockerfile.grpc
     volumes:
       - ./api-gateway:/app
-      - ./config/gateway/:/app/envs
     working_dir: /app
   
   ui:
