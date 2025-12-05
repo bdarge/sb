@@ -1,7 +1,7 @@
 ## Install vault-secrets-operator (VSO)  
 
 ```console
-helm install vault-secrets-operator hashicorp/vault-secrets-operator -n vault-secrets-operator-system --create-namespace --values vault-operator-values.yaml --kube-context k8s-app@app
+helm install vault-secrets-operator hashicorp/vault-secrets-operator -n vault-secrets-operator-system --create-namespace --values vault-operator-values.yaml [--kube-context k8s-app@app]
 ```
 
 To setup vso, in this project root dir, after running `vault login`:

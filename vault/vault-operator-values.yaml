@@ -17,5 +17,5 @@ controller:
         transitMount: sb-transit
         kubernetes:
           role: auth-role-operator
-          serviceAccount: sb-operator
-          tokenAudiences: ["vault"]
+          serviceAccount: vso-operator-sa
+          tokenAudiences: ["vault", "https://kubernetes.default.svc.cluster.local"]

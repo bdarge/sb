@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -e
+set -ue
 
 # Run 'vault login' before running this script
 KUBERNETES_CLUSTER=https://192.168.50.30

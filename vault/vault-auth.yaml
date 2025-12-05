@@ -48,8 +48,9 @@ spec:
   kubernetes:
     role: sb-role
     serviceAccount: sb-sa
-    # audiences:
-    #   - vault
+    audiences:
+      - vault
+      - https://kubernetes.default.svc.cluster.local
 ---
 apiVersion: secrets.hashicorp.com/v1beta1
 kind: VaultAuth
@@ -63,5 +64,6 @@ spec:
   kubernetes:
     role: auth-role
     serviceAccount: sb-sa
-    # audiences:
-    #   - vault
+    audiences:
+      - vault
+      - https://kubernetes.default.svc.cluster.local
