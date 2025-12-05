@@ -1,6 +1,6 @@
 #!/bin/sh
 
-use -eu
+set -eu
 
 app_ns=sb-app
 db_secret=sb-db
