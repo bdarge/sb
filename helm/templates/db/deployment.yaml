@@ -30,7 +30,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: "db-root-secret"
-                  key: root_password
+                  key: root-password
           ports:
             - name: http
               containerPort: 3306

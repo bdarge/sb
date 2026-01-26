@@ -77,9 +77,9 @@ spec:
           secret:
             secretName: sb-jwt-key
             items:
-            - key: jwt-key
+            - key: id_ecdsa
               path: id_ecdsa
-            - key: jwt-public-key
+            - key: id_ecdsa.pub
               path: id_ecdsa.pub
             defaultMode: 0400
         - name: db-connection
