@@ -12,23 +12,32 @@ To setup vso, in this project root dir, after running `vault login`:
 ### uninstall
 
 ```console
-helm uninstall vault-secrets-operator  -n vault-secrets-operator-system --kube-context k8s-app@app
+helm uninstall vault-secrets-operator  -n vault-secrets-operator-system [--kube-context k8s-app@app]
 ```
 
-- Export vault address, and skip cert verify values:
-`export VAULT_SKIP_VERIFY=true`
-`export VAULT_ADDR=https://192.168.50.76:8200`
+- Export vault address, and skip cert verify (`-tls-skip-verify`) if you don't have the server cert:
+```
+  export VAULT_ADDR=https://192.168.50.77:8200
+  vault login
+```
 
-- Then login using vault token:
-`vault login -tls-skip-verify`
+Add vault k8s's cert in app k8s:
 
-- run vso setup
+```console
+./add_vault_cert.sh
+```
+
+Setup auth, roles, and static and dynamic secret vault secret values
+
+
 ```console
 ./setup_vso.sh
 ```
 
-- Rotate db credential through VSO
+After sb-app has been installed, setup a rotating mysql db credential through VSO
 
 ```console
-./setup_rotate_rp.sh
+./refresh_db_pw.sh
 ```
+
+Add then run `kubectl apply -f ./dynamic-secret-vso.yaml` to add a dynamic vso secret type to generate a secret which contains a new connection string every 24 hours.

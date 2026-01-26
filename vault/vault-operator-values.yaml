@@ -1,8 +1,8 @@
 defaultVaultConnection:
   enabled: true
-  address: "https://192.168.50.76:8200"
-  skipTLSVerify: true
-  # caCertSecret: vault-cert-key
+  address: "https://192.168.50.77:8200"
+  skipTLSVerify: false
+  caCertSecret: vault-crt
 controller:
   manager:
     logging:
@@ -12,7 +12,7 @@ controller:
       persistenceModel: direct-encrypted
       storageEncryption:
         enabled: true
-        mount: k8s
+        mount: k8s-2
         keyName: vso-client-cache
         transitMount: sb-transit
         kubernetes:

@@ -33,18 +33,19 @@ metadata:
   namespace: sb-app
   name: vault-connection
 spec:
-  address: "https://192.168.50.76:8200"
-  skipTLSVerify: true
+  address: https://192.168.50.77:8200
+  skipTLSVerify: false
+  caCertSecretRef: vault-crt
 ---
 apiVersion: secrets.hashicorp.com/v1beta1
 kind: VaultAuth
 metadata:
-  name: vso-auth
+  name: vso-k8s-auth
   namespace: sb-app
 spec:
   vaultConnectionRef: vault-connection
   method: kubernetes
-  mount: k8s
+  mount: k8s-auth
   kubernetes:
     role: sb-role
     serviceAccount: sb-sa
@@ -55,14 +56,14 @@ spec:
 apiVersion: secrets.hashicorp.com/v1beta1
 kind: VaultAuth
 metadata:
-  name: vso-auth-dynamic
+  name: vso-k8s-auth-dynamic
   namespace: sb-app
 spec:
   vaultConnectionRef: vault-connection
   method: kubernetes
-  mount: k8s
+  mount: k8s-auth
   kubernetes:
-    role: auth-role
+    role: sb-mysql-role
     serviceAccount: sb-sa
     audiences:
       - vault

@@ -2,61 +2,55 @@
 
 set -eu
 
-app_ns=sb-app
-db_secret=sb-db
-db_roles=sb-mysql-role
-db_policy=sb-auth-policy-db
-config_name=profile
-context=bd@app
-
 # setup db secret
-db_secret=sb-db
-db_roles=sb-mysql-role
-db_policy=sb-auth-policy-db
-config_name=profile
+APP_NAMESPACE=sb-app
+VAULT_DB_SECRET=sb-db
+VAULT_DB_ROLE=sb-mysql-role
+CONFIG_NAME=profile
+APP_K8S_CONTEXT=bd@app
+USERNAME="root"
+VAULT_AUTH=k8s-auth
+APP_SA=sb-sa
 
-if ! vault secrets list | grep -q  "$db_secret/" ; then
-   vault secrets enable -path=$db_secret database
+
+if ! vault secrets list | grep -q  "$VAULT_DB_SECRET/" ; then
+   vault secrets enable -path=$VAULT_DB_SECRET database
    sleep 10
 fi
 
-if ! vault policy list | grep -q $db_policy ; then
-vault policy write $db_policy - <<EOF
-path "$db_secret/creds/$db_roles" {
+if ! vault policy list | grep -q $VAULT_DB_ROLE ; then
+vault policy write $VAULT_DB_ROLE - <<EOF
+path "$VAULT_DB_SECRET/creds/$VAULT_DB_ROLE" {
    capabilities = ["read"]
 }
 EOF
 fi
 
 # get db port from k8s service
-port=$(kubectl get svc -n sb-app --context $context sb-db-svc -o=jsonpath='{.spec.ports[0].port}')
+PORT=$(kubectl get svc -n sb-app --context $APP_K8S_CONTEXT sb-db-svc -o=jsonpath='{.spec.ports[0].port}')
+
 # read db_url from k8s service
-db_url=$(kubectl get svc -n $app_ns --context $context sb-db-svc -o=jsonpath='{.status.loadBalancer.ingress[0].ip}')
+DB_URL=$(kubectl get svc -n $APP_NAMESPACE --context $APP_K8S_CONTEXT sb-db-svc -o=jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
 # read db's root cred from k8s secrets
-password=$(kubectl get secrets -n $app_ns --context $context db-root-secret -o=jsonpath='{.data.root_password}' | base64 -d)
-username="root"
+PASSWORD=$(kubectl get secrets -n $APP_NAMESPACE --context $APP_K8S_CONTEXT db-root-secret -o=jsonpath='{.data.root-password}' | base64 -d)
 
-vault write $db_secret/config/$config_name \
+vault write $VAULT_DB_SECRET/config/$CONFIG_NAME \
     plugin_name=mysql-database-plugin \
-    allowed_roles=$db_roles \
-    connection_url="{{username}}:{{password}}@tcp($db_url:$port)/" \
-    username="$username" \
-    password="$password"
+    allowed_roles=$VAULT_DB_ROLE \
+    connection_url="{{username}}:{{password}}@tcp($DB_URL:$PORT)/" \
+    username="$USERNAME" \
+    password="$PASSWORD"
 
-vault write $db_secret/roles/$db_roles \
-    db_name=$config_name \
+vault write $VAULT_DB_SECRET/roles/$VAULT_DB_ROLE \
+    db_name=$CONFIG_NAME \
     creation_statements="CREATE USER '{{name}}'@'%' IDENTIFIED BY '{{password}}';GRANT ALL ON *.* TO '{{name}}'@'%';" \
-    default_ttl="1h" \
+    default_ttl="2h" \
     max_ttl="24h"
 
-# add auth
-app_sa=sb-sa
-auth=k8s
-db_auth_role=auth-role
-
-vault write auth/$auth/role/$db_auth_role \
-   bound_service_account_names=$app_sa \
-   bound_service_account_namespaces=$app_ns \
-   token_ttl=0 \
-   token_period=120 \
-   token_policies=$db_policy \
+vault write auth/$VAULT_AUTH/role/$VAULT_DB_ROLE \
+   bound_service_account_names=$APP_SA \
+   bound_service_account_namespaces=$APP_NAMESPACE \
+   policies=$VAULT_DB_ROLE \
+   token_period=2m \
+   audience=vault

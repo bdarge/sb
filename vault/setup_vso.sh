@@ -2,56 +2,80 @@
 
 set -ue
 
-# Run 'vault login' before running this script
-KUBERNETES_CLUSTER=https://192.168.50.30
-KUBERNETES_PORT_443_TCP_ADDR=https://192.168.50.30:6443
-k8s_context=bd@app
-app_ns=sb-app
-app_sa=sb-sa
-app_role=sb-role
-app_name=sb-app
-app_policy=sb
-auth=k8s
-secrets=kvv2
-transit=sb-transit
-key=vso-client-cache
-cache_policy=auth-policy-operator
-operator_role=auth-role-operator
-operator_sa=vso-operator-sa
-operator_ns=vault-secrets-operator-system
+APP_K8S=https://192.168.50.30:6443
+VAULT_AUTH=k8s-auth
+APP_SA=sb-sa
+APP_ROLE=sb-role
+APP_NAMESPACE=sb-app
+APP_POLICY=sb
+SECRETS=kvv2
 
-# setup vault access
-if ! vault auth list | grep -q $auth ; then
-   vault auth enable -path $auth kubernetes
-   sleep 20
+TRANSIT=sb-transit
+TRANSIT_KEY=vso-client-cache
+CACHE_POLICY=auth-policy-operator
+OPERATOR_ROLE=auth-role-operator
+OPERATOR_SA=vso-operator-sa
+OPERATOR_NAMESPACE=vault-secrets-operator-system
 
-   vault write auth/$auth/config \
-         kubernetes_host="$KUBERNETES_PORT_443_TCP_ADDR" \
-         disable_local_ca_jwt=true
+
+if ! vault auth list | grep -q $VAULT_AUTH ; then
+  vault auth enable -path $VAULT_AUTH kubernetes
+   
+  #  sleep 20
+
+  KUBE_CA_CERT=$(kubectl config view --raw --minify --flatten \
+      -o jsonpath='{.clusters[].cluster.certificate-authority-data}' \
+      | base64 -d)
+
+  vault write auth/$VAULT_AUTH/config \
+        kubernetes_host="$APP_K8S" \
+        disable_local_ca_jwt=true \
+        kubernetes_ca_cert="$KUBE_CA_CERT"
 fi
 
+vault write auth/$VAULT_AUTH/role/$APP_ROLE \
+   bound_service_account_names=$APP_SA \
+   bound_service_account_namespaces=$APP_NAMESPACE \
+   policies=$APP_POLICY \
+   token_period=2m \
+   audience=vault
+
+vault write auth/$VAULT_AUTH/role/$OPERATOR_ROLE \
+   bound_service_account_names=$OPERATOR_SA \
+   bound_service_account_namespaces=$OPERATOR_NAMESPACE \
+   token_ttl=0 \
+   token_period=120 \
+   token_policies=$CACHE_POLICY \
+   audience=vault
+
+# transit
+if ! vault secrets list | grep -q  "$TRANSIT/" ; then
+   vault secrets enable -path=$transit transit
+   vault write -force $transit/keys/$TRANSIT_KEY
+fi
+
+if ! vault policy list | grep -q $CACHE_POLICY ; then
+   vault policy write $CACHE_POLICY - <<EOF
+path "$transit/encrypt/$TRANSIT_KEY" {
+   capabilities = ["create", "update"]
+}
+path "$transit/decrypt/$TRANSIT_KEY" {
+   capabilities = ["create", "update"]
+}
+EOF
+fi
+
+
 # setup secret
-if ! vault secrets list | grep -q  "$secrets/" ; then
-   vault secrets enable -path=$secrets kv-v2
+if ! vault secrets list | grep -q  "$SECRETS/" ; then
+   vault secrets enable -path=$SECRETS kv-v2
    sleep 10
 fi
 
 # write app policy
-if ! vault policy list | grep -q $app_policy ; then
-   vault policy write $app_policy - <<EOF
-path "$secrets/data/$app_name/db-root" {
-   capabilities = ["read"]
-}
-path "$secrets/data/$app_name/jwt-key" {
-   capabilities = ["read"]
-}
-path "$secrets/data/$app_name/git-token" {
-   capabilities = ["read"]
-}
-path "kvv2/data/$app_policy/cloudflare_api_token" {
-   capabilities = ["read"]
-}
-path "$secrets/data/$app_name/ghcr" {
+if ! vault policy list | grep -q $APP_POLICY ; then
+   vault policy write $APP_POLICY - <<EOF
+path "$SECRETS/data/$APP_NAMESPACE/*" {
    capabilities = ["read", "list", "subscribe"]
    subscribe_event_types = ["kv*"]
 }
@@ -61,47 +85,8 @@ path "sys/events/subscribe/kv*" {
 EOF
 fi
 
-# create app ns
-kubectl get namespace --context $k8s_context | grep -q "^$app_ns" || kubectl create namespace $app_ns --context $k8s_context
-
-# add app role
-vault write auth/$auth/role/$app_role \
-   bound_service_account_names=$app_sa \
-   bound_service_account_namespaces=$app_ns \
-   policies=$app_policy \
-   token_period=2m
-
-# transit
-if ! vault secrets list | grep -q  "$transit/" ; then
-   vault secrets enable -path=$transit transit
-   vault write -force $transit/keys/$key
-fi
-
-if ! vault policy list | grep -q $cache_policy ; then
-   vault policy write $cache_policy - <<EOF
-path "$transit/encrypt/$key" {
-   capabilities = ["create", "update"]
-}
-path "$transit/decrypt/$key" {
-   capabilities = ["create", "update"]
-}
-EOF
-fi
-
-vault write auth/$auth/role/$operator_role \
-   bound_service_account_names=$operator_sa \
-   bound_service_account_namespaces=$operator_ns \
-   token_ttl=0 \
-   token_period=120 \
-   token_policies=$cache_policy \
-   audience=vault
-
-
-# setup vso
-kubectl apply -f ./vault-auth.yaml --context $k8s_context
+# create vso auth to k8s vault
+kubectl apply -f ./vault-auth.yaml
 
 # create static secrets
-kubectl apply -f ./static-secret-vso.yaml --context $k8s_context
-
-# create dynamic secrets
-kubectl apply -f ./dynamic-secret-vso.yaml --context $k8s_context
+kubectl apply -f ./static-secret-vso.yaml
