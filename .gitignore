@@ -12,3 +12,5 @@ coverage
 *.pem
 
 secrets/
+
+**/*/.crt
