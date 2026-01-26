@@ -46,11 +46,6 @@ spec:
               value: "true"
             - name: CRED_PATH
               value: /run/secrets/db/cred.env
-            - name: GIT_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: "sb-git-token"
-                  key: token
           volumeMounts:
             - name: config
               mountPath: "/app/envs"
