@@ -48,4 +48,4 @@ helm uninstall sb --namespace sb-app [--kube-context k8s-app@app]
 
 High level view of how this app deployed on a local k8s cluster:
 
-![alt text](image.png)
+![alt text](image-1.png)
