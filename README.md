@@ -46,6 +46,6 @@ To uninstall:
 helm uninstall sb --namespace sb-app [--kube-context k8s-app@app]
 ```
 
-High level view of how this app deployed on a local k8s cluster:
+Deployed on a local k8s cluser:
 
-![alt text](sb.drawio.svg)
+<img width="788" height="580" alt="image" src="https://github.com/user-attachments/assets/a0cc9bf2-3a47-4769-a358-c58445916193" />
